@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>normals</key>
+	<data>
+	AAAAAAAAAAD//38/AAAAAAAAAAD//38/AAAAAAAAAAD//38/AAAAAAAAAAD//38/AAAA
+	AAAAAAD//38/AAAAAAAAAAD//38/
+	</data>
+	<key>texcoords</key>
+	<data>
+	AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/
+	</data>
+	<key>vertexCount</key>
+	<integer>6</integer>
+	<key>vertices</key>
+	<data>
+	AAAAvwAAAL8AAAAAAAAAPwAAAL8AAAAAAAAAvwAAAD8AAAAAAAAAvwAAAD8AAAAAAAAA
+	PwAAAL8AAAAAAAAAPwAAAD8AAAAA
+	</data>
+</dict>
+</plist>
