@@ -35,16 +35,20 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	private GLModel grid;
 	private GLModel table;
 	private GLModel plane;
+	private GLModel girl_plane;
 	private GLModel sign_plane;
 	private GLModel star;
 	private GLModel pieceShadow;
 	private GLModel pieceHighlight;
-
+	private GLModel winner_plane;
+	private GLModel loser_plane;
+	
 	private float touchAge = 0;
 	private Point touchLocation = null;
 	private float animateFraction = 0;
 	
 	private float myTurnAnimationFraction = 0;
+	private float gameOverAnimationFraction = 0;
 	
 	private BoardGLViewDelegate delegate;
 	
@@ -85,6 +89,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		sign_plane = new GLModel("sign_plane.model", "itsyourturnTexture");
 		pieceShadow = new GLModel("box_highlight.model", "shadowTexture");
 		pieceHighlight = new GLModel("highlight.model", "touchTexture");
+		girl_plane = new GLModel("sign_plane.model", "winGirlTexture");
+		winner_plane = new GLModel("sign_plane.model", "winPlaneTexture");
+		loser_plane = new GLModel("sign_plane.model", "losePlaneTexture");
 		
 		// load textures
 		Resources res = m.glContext.getResources();
@@ -97,6 +104,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		m.loadTextureWithName("itsyourturnTexture", BitmapFactory.decodeResource(res, R.drawable.itsyourturn));
 		m.loadTextureWithName("shadowTexture", BitmapFactory.decodeResource(res, R.drawable.shadow));
 		m.loadTextureWithName("touchTexture", BitmapFactory.decodeResource(res, R.drawable.touch));
+		m.loadTextureWithName("winGirlTexture", BitmapFactory.decodeResource(res, R.drawable.winnergirl));
+		m.loadTextureWithName("winPlaneTexture", BitmapFactory.decodeResource(res, R.drawable.winner));
+		m.loadTextureWithName("losePlaneTexture", BitmapFactory.decodeResource(res, R.drawable.loser));
 	}
 	
 	public void onDrawFrame(GL10 gl) {
@@ -107,10 +117,8 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		float h = 1.5f + (1 - smoothed) * 9;
 		
 		gl.glViewport(0, 0, backingWidth, backingHeight);
-
 		gl.glMatrixMode(GL11.GL_MODELVIEW);
 	    gl.glLoadIdentity();
-		
 	    gl.glMatrixMode(GL11.GL_PROJECTION);
 		gl.glLoadIdentity();
 		gl.glOrthof(-0.33f, 0.33f, -0.5f, 0.5f, -1, 1);
@@ -127,6 +135,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    
 	    // draw our attractive background
 	    plane.draw();
+	    /*
 	    
 	    // draw a couple stars on top in an additive blend mode
 	    gl.glEnable(GL11.GL_BLEND);
@@ -136,16 +145,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    star.pitch = -(star.pitch - 40);
 	    star.draw();
 	    star.pitch = -star.pitch + 40;
-
-	    if (board.isMyTurn() == true){
-	    	if (myTurnAnimationFraction < 1)
-	    		myTurnAnimationFraction = (float) Math.max(myTurnAnimationFraction + 0.01 + (1-myTurnAnimationFraction) * 0.25, 1);
-	    	gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		    sign_plane.y = - (1-myTurnAnimationFraction) * 10;
-	    	sign_plane.draw();
-		    gl.glDisable(GL11.GL_BLEND);
-	    }
+	     */
 	    
+
 	    // look from camera XYZ, look at the origin, positive Y up vector
 	    gl.glLoadIdentity();
 	    gl.glFrustumf(-w, w, -h, h, 35.0f, 65.0f);
@@ -153,9 +155,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    gl.glEnable(GL11.GL_DEPTH_TEST);
 
 	    // draw the table down some
-		gl.glTranslatef(0, -14, 3f);
+		gl.glTranslatef(0, -14 + (-15 * gameOverAnimationFraction), 3f);
 		
-	    // draw the table
+	   // draw the table
 	    grid.draw();
 	    table.draw();
 
@@ -190,6 +192,50 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 
 		gl.glTranslatef(0, 14, -3f);
 		
+		// draw 2D things like the signs and hot girls
+		gl.glViewport(0, 0, backingWidth, backingHeight);
+		gl.glMatrixMode(GL11.GL_MODELVIEW);
+	    gl.glLoadIdentity();
+	    gl.glMatrixMode(GL11.GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glOrthof(-0.33f, 0.33f, -0.5f, 0.5f, -1, 1);
+		gl.glColor4f(1, 1, 1, 1);
+		
+	    if ((myTurnAnimationFraction < 1) && (board.isMyTurn()) && (!board.isGameOver()))
+    		myTurnAnimationFraction = (float) Math.min(myTurnAnimationFraction + 0.01 + (1-myTurnAnimationFraction) * 0.10, 1);
+    	else if ((myTurnAnimationFraction > 0) && ((!board.isMyTurn()) || (board.isGameOver())))
+    		myTurnAnimationFraction -= 0.1;
+	    
+	    gl.glEnable(GL11.GL_BLEND);
+    	gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	    sign_plane.y = - (1-myTurnAnimationFraction) * 10;
+    	sign_plane.draw();
+	    gl.glDisable(GL11.GL_BLEND);
+	    
+	    // draw in the winner girl, if we've won
+	    if (board.isGameOver()){
+	    	if (gameOverAnimationFraction < 1)
+	    		gameOverAnimationFraction = (float) Math.min(gameOverAnimationFraction + 0.01 + (1-gameOverAnimationFraction) * 0.10, 1);
+	    		
+	    	gl.glEnable(GL11.GL_BLEND);
+	    	gl.glPushMatrix();
+	    	gl.glTranslatef((1-gameOverAnimationFraction) * 1.0f + 0.12f, -0.31f, 0);
+	    	gl.glScalef(0.75f, 0.75f, 1);
+	    	if (board.getWinner() == board.getMyPlayerID())
+	    		winner_plane.draw();
+	    	else
+	    		loser_plane.draw();
+	    	gl.glPopMatrix();
+	    	
+	    	gl.glPushMatrix();
+	    	gl.glScalef(0.6f, 2.4f, 1.0f);
+	    	gl.glTranslatef((1-gameOverAnimationFraction) * -1.0f - 0.2f, -0.31f, 1);
+	    	girl_plane.draw();
+	    	gl.glPopMatrix();
+	    	
+	    	gl.glDisable(GL11.GL_BLEND);
+	    }
+	    
 		// draw the touch overlay, if we have one
 		if (touchLocation != null){
 			gl.glViewport(0, 0, backingWidth, backingHeight);
