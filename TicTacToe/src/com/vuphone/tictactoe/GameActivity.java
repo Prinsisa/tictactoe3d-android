@@ -11,12 +11,18 @@ import com.vuphone.tictactoe.model.Board;
 
 public class GameActivity extends Activity implements BoardGLViewDelegate {
 	private BoardGLView paintView;
-	private Board gameBoard;
+	private Board gameBoard = null;
 	
-	/** Called when the activity is first created. */
+	/** Called when the activity is first created
+	 *  and again after the apps goes offscreen and resumes
+	 */
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // load the game model
+		gameBoard = Board.getInstance();
         
         // remove our title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -28,16 +34,15 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
         // get the OpenGL context from the surface and save it
 		GLManager.getInstance().glContext = paintView.getContext();
+		
+		startGame();
     }
     
 
 	public void paintSurfaceGLReady() {
 		// determine what we can do with our OpenGL Environment
 		GLManager.getInstance().runEnvironmentTests();
-		
-		// load the game model
-		gameBoard = new Board();
-		
+
 		// give the view a handle to the model
 		paintView.board = gameBoard;
 		paintView.requestRender();
@@ -64,6 +69,14 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
         paintView.onPause();
         
         super.finish();
+    }
+    
+    public void startGame(){
+    	if(gameBoard.isGameInProgress()){
+    		// resume the game
+    	} else{
+    		gameBoard.startNewGame();
+    	}
     }
 
 
