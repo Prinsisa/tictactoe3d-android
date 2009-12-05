@@ -39,6 +39,7 @@ public class GameServer extends Thread {
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
 	private final String cmdGameInProgress = "<cmd>GAME-IN-PROGRESS</cmd>";
+	private final String cmdPlayerExited = "<cmd>PLAYER-EXITED-GAME</cmd>";
 
 	public GameServer() {
 		super("GameServer");
@@ -46,8 +47,6 @@ public class GameServer extends Thread {
 
 	@Override
 	public void run() {
-		Log.d("mad", "[*] Listening for game requests...");
-
 		try {
 			s_ = new ServerSocket(PORT);
 			s_.setSoTimeout(2000);
@@ -57,6 +56,8 @@ public class GameServer extends Thread {
 		} catch (Exception e) {
 		}
 
+		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
+		
 		// lets find our IP address
 		try {
 			Socket socket = new Socket("www.google.com", 80);
@@ -87,6 +88,7 @@ public class GameServer extends Thread {
 
 				if (Board.getInstance().isGameInProgress()) {
 					sock.getOutputStream().write(cmdGameInProgress.getBytes());
+					sock.close();
 				} else {
 
 					LobbyActivity.uiThreadCallback.post(new Runnable() {
@@ -154,9 +156,13 @@ public class GameServer extends Thread {
 	private Socket sendRequest(String remoteAddr, int remotePort) {
 		// write the object
 		Socket sock = getSocket(remoteAddr, remotePort);
-		if (sock == null)
+		if (sock == null){
+			Log.d("mad", "Couldn't open a socket!");
 			return null;
-
+		}
+		
+		Log.d("mad", "Sending request to " + sock.getRemoteSocketAddress());
+		
 		try {
 			OutputStream out = sock.getOutputStream();
 			out.write(cmdGameRequest.getBytes());
@@ -246,6 +252,9 @@ public class GameServer extends Thread {
 
 	private Socket getSocket(String remoteAddr, int remotePort) {
 		Socket sock = null;
+		
+		Log.d("mad", "Opening a socket to " + remoteAddr + ":" + remotePort);
+		
 		try {
 			sock = new Socket(remoteAddr, remotePort);
 
@@ -277,5 +286,12 @@ public class GameServer extends Thread {
 		}
 
 		return listening_ip_;
+	}
+	
+	public void sendPlayerExited(Socket s){
+		try{
+			s.getOutputStream().write(cmdPlayerExited.getBytes());
+		} catch (Exception e) {
+		}
 	}
 }
