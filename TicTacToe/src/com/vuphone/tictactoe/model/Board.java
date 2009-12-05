@@ -32,7 +32,7 @@ public class Board {
 		return squares[x][y];
 	}
 
-	public void setValueInSquare(int x, int y, int v) {
+	public void setValueInSquare(int x, int y) {
 		// is this piece already set?
 		if(squares[x][y] != 0)
 			return;
