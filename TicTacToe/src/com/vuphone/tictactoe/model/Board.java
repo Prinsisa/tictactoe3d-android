@@ -53,6 +53,10 @@ public class Board {
 	public int getWhosTurn() {
 		return currentTurn_;
 	}
+	
+	public int getMyPlayerID(){
+		return PLAYER_ME;
+	}
 
 	public void setWhosTurn(int turn) {
 		currentTurn_ = turn;
@@ -90,7 +94,7 @@ public class Board {
 	}
 
 	private void clearBoard() {
-
+		
 	}
 
 	public Socket getOpponentSocket() {
@@ -105,6 +109,13 @@ public class Board {
 		return (sock_ == null) ? false : true;
 	}
 
+	public boolean isMyTurn(){
+		if(isNetworkedGame())
+			return getMyPlayerID() == getWhosTurn();
+		else
+			return true;
+	}
+	
 	public void endGame() {
 		inProgress_ = false;
 
