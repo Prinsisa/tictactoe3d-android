@@ -54,7 +54,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		String btn = ((Button) v).getText().toString();
 
 		if (btn.equals("Single Player Mode")) {
-			Board.getInstance().startNewGame();
+			Board.getInstance().startNewGame(1);
 			Intent i = new Intent(this, GameActivity.class);
 			startActivity(i);
 			return;
@@ -90,7 +90,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				echo("Opponent has accepted your challenge! Starting game...");
 
 				Board.getInstance().setOpponentSocket(sock);
-				Board.getInstance().startNewGame();
+				Board.getInstance().startNewGame(1); // initiator is always 1
 
 				Intent i = new Intent(this, GameActivity.class);
 				startActivity(i);
@@ -131,7 +131,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 						dialog.cancel();
 						GameServer.getInstance().responseToRequest(sock, true);
 						Board.getInstance().setOpponentSocket(sock);
-						Board.getInstance().startNewGame();
+						Board.getInstance().startNewGame(2); // receiver is
+																// always 2
 
 						startActivity(act);
 						return;

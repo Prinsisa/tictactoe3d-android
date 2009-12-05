@@ -12,32 +12,31 @@ import com.vuphone.tictactoe.model.Board;
 public class GameActivity extends Activity implements BoardGLViewDelegate {
 	private BoardGLView paintView;
 	private Board gameBoard = null;
-	
-	/** Called when the activity is first created
-	 *  and again after the apps goes offscreen and resumes
-	 */
-	
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        // load the game model
-		gameBoard = Board.getInstance();
-        
-        // remove our title bar
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        
-        // create the actual openGL view and setup our custom renderer
-        paintView = new BoardGLView(this, this);
-        setContentView(paintView);
 
-        // get the OpenGL context from the surface and save it
+	/**
+	 * Called when the activity is first created and again after the apps goes
+	 * offscreen and resumes
+	 */
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		// load the game model
+		gameBoard = Board.getInstance();
+
+		// remove our title bar
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		// create the actual openGL view and setup our custom renderer
+		paintView = new BoardGLView(this, this);
+		setContentView(paintView);
+
+		// get the OpenGL context from the surface and save it
 		GLManager.getInstance().glContext = paintView.getContext();
-		
-		startGame();
-    }
-    
+	}
 
 	public void paintSurfaceGLReady() {
 		// determine what we can do with our OpenGL Environment
@@ -50,34 +49,24 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 	public void paintSurfaceSquareTouched(int x, int y) {
 		// TODO Auto-generated method stub
-		Log.d("Touch", "User touched square " + x + "," + y );
+		Log.d("Touch", "User touched square " + x + "," + y);
 	}
 
-    @Override
-    protected void onResume() {
-        // Ideally a game should implement onResume() and onPause()
-        // to take appropriate action when the activity looses focus
-        super.onResume();
-        paintView.onResume();
-    }
+	@Override
+	protected void onResume() {
+		// Ideally a game should implement onResume() and onPause()
+		// to take appropriate action when the activity looses focus
+		super.onResume();
+		paintView.onResume();
+	}
 
-    @Override
-    protected void onPause() {
-        // Ideally a game should implement onResume() and onPause()
-        // to take appropriate action when the activity looses focus
-        super.onPause();
-        paintView.onPause();
-        
-        super.finish();
-    }
-    
-    public void startGame(){
-    	if(gameBoard.isGameInProgress()){
-    		// resume the game
-    	} else{
-    		gameBoard.startNewGame();
-    	}
-    }
+	@Override
+	protected void onPause() {
+		// Ideally a game should implement onResume() and onPause()
+		// to take appropriate action when the activity looses focus
+		super.onPause();
+		paintView.onPause();
 
-
+		super.finish();
+	}
 }
