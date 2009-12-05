@@ -38,8 +38,9 @@ public class GameServer extends Thread {
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
 	private final String cmdGameInProgress = "<cmd>GAME-IN-PROGRESS</cmd>";
-	private final String cmdPlayerExited = "<cmd>PLAYER-EXITED-GAME</cmd>";
+	public final String cmdPlayerExited = "<cmd>PLAYER-EXITED-GAME</cmd>";
 	private final String cmdBoardUpdate = "<cmd><boardupdate/>";
+	public final String cmdGameOver = "<cmd>GAME-OVER</cmd>";
 
 	public GameServer() {
 		super("GameServer");
@@ -300,12 +301,19 @@ public class GameServer extends Thread {
 		}
 	}
 
-	public void sendPlayerExited(Socket sock) {
-		sendCmd(sock, cmdPlayerExited);
-	}
-
 	public void parseInGameCmd(String s) {
 		Log.d("mad", "InGameCmd received! " + s);
-
+		Board board = Board.getInstance();
+		
+		int updateLen = cmdBoardUpdate.length();
+		if(s.substring(0, updateLen).equals(cmdBoardUpdate)){
+			String v = s.substring(updateLen, updateLen + 3);
+			int x = v.charAt(0)- 48;
+			int y = v.charAt(2)- 48;
+			board.setValueByOpponent(x,y);
+		} else if(s.equals(cmdPlayerExited)){
+			board.setWinner(board.getMyPlayerID());
+			board.endGame();
+		}
 	}
 }

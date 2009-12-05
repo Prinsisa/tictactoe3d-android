@@ -8,14 +8,15 @@ public class Board {
 
 	public static int PLAYER_1 = 1;
 	public static int PLAYER_2 = 2;
-	private static int PLAYER_ME = 0;
-
+	private int PLAYER_ME = 0;
+	private int WINNER = 0;
+	
 	private Integer currentTurn_ = 1;
 	private static boolean inProgress_ = false;
 	private static Board instance_ = null;
 	private Socket sock_ = null;
 	private static GameServer gameServer = GameServer.getInstance();
-
+	
 	private int squares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 
 	protected Board() {
@@ -44,12 +45,26 @@ public class Board {
 			// notify remote user of change
 			String cmd = gameServer.buildBoardUpdateCmd(x, y);
 			gameServer.sendCmd(sock_, cmd);
+			
+			if(isGameOver())
+				endGame();			
 		} else if (!isNetworkedGame()) {
 			squares[x][y] = currentTurn_;
 			setWhosTurn(currentTurn_ == 1 ? 2 : 1);
 		}
 	}
 
+	public void setValueByOpponent(int x, int y){
+		squares[x][y] = currentTurn_;
+		setWhosTurn(PLAYER_ME);
+		if(isGameOver())
+			endGame();
+	}
+	
+	public void setWinner(int player){
+		WINNER = player;
+	}
+	
 	public int getWhosTurn() {
 		return currentTurn_;
 	}
@@ -76,8 +91,7 @@ public class Board {
 	 * @return playerID else 0
 	 */
 	public int getWinner() {
-		// todo
-		return 0;
+		return WINNER;
 	}
 
 	public boolean isGameInProgress() {
@@ -86,6 +100,7 @@ public class Board {
 
 	public void startNewGame(int playerNum) {
 		inProgress_ = true;
+		WINNER = 0;
 		clearBoard();
 		PLAYER_ME = playerNum;
 		setWhosTurn(PLAYER_1);
@@ -120,14 +135,16 @@ public class Board {
 
 	public void endGame() {
 		inProgress_ = false;
-
+		GameServer gs = GameServer.getInstance();
+		
 		if (isGameOver()) {
 			// game finished normally
+			gs.sendCmd(sock_, gs.cmdGameOver);
 		} else {
 			// we exited prematurely
+			gs.sendCmd(sock_, gs.cmdPlayerExited);
 		}
 
-		GameServer.getInstance().sendPlayerExited(sock_);
 		sock_ = null;
 	}
 
