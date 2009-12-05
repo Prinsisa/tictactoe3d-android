@@ -44,6 +44,11 @@ public class GLModel {
 		
 	}
 
+	public void setTexture(String tname)
+	{
+		texture = tname;
+	}
+	
 	public void draw()
 	{
 	    float mesh_diffuse[] = {0.75f, 0.5f, 0.26f, 1.0f};
