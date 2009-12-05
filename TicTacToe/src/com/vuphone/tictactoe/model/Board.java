@@ -46,7 +46,7 @@ public class Board {
 			gameServer.sendCmd(sock_, cmd);
 		} else if (!isNetworkedGame()) {
 			squares[x][y] = currentTurn_;
-			setWhosTurn(PLAYER_ME == 1 ? 2 : 1);
+			setWhosTurn(currentTurn_ == 1 ? 2 : 1);
 		}
 	}
 

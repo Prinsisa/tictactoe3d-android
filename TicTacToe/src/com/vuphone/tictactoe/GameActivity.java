@@ -50,6 +50,7 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	public void paintSurfaceSquareTouched(int x, int y) {
 		// TODO Auto-generated method stub
 		Log.d("Touch", "User touched square " + x + "," + y);
+		gameBoard.setValueInSquare(x, y);
 	}
 
 	@Override
