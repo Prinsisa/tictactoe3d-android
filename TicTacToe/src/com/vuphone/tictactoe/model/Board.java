@@ -6,6 +6,8 @@ public class Board {
 
 	public static int PLAYER_1 = 1;
 	public static int PLAYER_2 = 2;
+	private static int PLAYER_ME = 0;
+
 	private Integer currentTurn_ = 1;
 	private static boolean inProgress_ = false;
 	private static Board instance_ = null;
@@ -37,7 +39,7 @@ public class Board {
 
 	public void setWhosTurn(int turn) {
 		currentTurn_ = turn;
-		synchronized(currentTurn_){
+		synchronized (currentTurn_) {
 			currentTurn_.notifyAll();
 		}
 	}
@@ -61,21 +63,22 @@ public class Board {
 		return inProgress_;
 	}
 
-	public void startNewGame() {
-		clearBoard();
+	public void startNewGame(int playerNum) {
 		inProgress_ = true;
+		clearBoard();
+		PLAYER_ME = playerNum;
 		setWhosTurn(PLAYER_1);
 	}
 
 	private void clearBoard() {
 
 	}
-	
-	public Socket getOpponentSocket(){
+
+	public Socket getOpponentSocket() {
 		return sock_;
 	}
-	
-	public void setOpponentSocket(Socket s){
+
+	public void setOpponentSocket(Socket s) {
 		sock_ = s;
 	}
 }
