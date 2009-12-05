@@ -17,12 +17,15 @@ public final class R {
         public static final int grid=0x7f020003;
         public static final int icon=0x7f020004;
         public static final int itsyourturn=0x7f020005;
-        public static final int o=0x7f020006;
-        public static final int shadow=0x7f020007;
-        public static final int star=0x7f020008;
-        public static final int touch=0x7f020009;
-        public static final int wood=0x7f02000a;
-        public static final int x=0x7f02000b;
+        public static final int loser=0x7f020006;
+        public static final int o=0x7f020007;
+        public static final int shadow=0x7f020008;
+        public static final int star=0x7f020009;
+        public static final int touch=0x7f02000a;
+        public static final int winner=0x7f02000b;
+        public static final int winnergirl=0x7f02000c;
+        public static final int wood=0x7f02000d;
+        public static final int x=0x7f02000e;
     }
     public static final class id {
         public static final int btnSendRequest=0x7f050002;
