@@ -10,13 +10,13 @@ public class Board {
 	public static int PLAYER_2 = 2;
 	private int PLAYER_ME = 0;
 	private int WINNER = 0;
-	
+
 	private Integer currentTurn_ = 1;
 	private static boolean inProgress_ = false;
 	private static Board instance_ = null;
 	private Socket sock_ = null;
 	private static GameServer gameServer = GameServer.getInstance();
-	
+
 	private int squares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 
 	protected Board() {
@@ -45,51 +45,67 @@ public class Board {
 			// notify remote user of change
 			String cmd = gameServer.buildBoardUpdateCmd(x, y);
 			gameServer.sendCmd(sock_, cmd);
-			
+
 		} else if (!isNetworkedGame()) {
 			squares[x][y] = currentTurn_;
 			setWhosTurn(currentTurn_ == 1 ? 2 : 1);
 		}
+
+		setWinner(findWinner());
+		checkForFullBoard();
+	}
+
+	public void setValueByOpponent(int x, int y) {
+		squares[x][y] = currentTurn_;
+		setWhosTurn(PLAYER_ME);
+
+		setWinner(findWinner());
+		checkForFullBoard();
+	}
+
+	public void setWinner(int player) {
+		WINNER = player;
 		
-		WINNER = findWinner();
-		if(isGameOver())
+		if (player != 0)
 			endGame();
 	}
 
-	public void setValueByOpponent(int x, int y){
-		squares[x][y] = currentTurn_;
-		setWhosTurn(PLAYER_ME);
-		
-		WINNER = findWinner();
-		if(isGameOver())
+	public void checkForFullBoard() {
+		int count = 0;
+		for (int x = 0; x < 3; ++x)
+			for (int y = 0; y < 3; ++y)
+				if (squares[x][y] == 0)
+					++count;
+
+		// is the board full
+		if (count == 0)
 			endGame();
 	}
-	
-	public void setWinner(int player){
-		WINNER = player;
-	}
-	
+
 	public int findWinner() {
 
 		// look for chains of three across
-		for (int y = 0; y < 3; y ++)
-			if ((squares[0][y] == squares[1][y]) && (squares[0][y] == squares[2][y]) && (squares[0][y] != 0))
+		for (int y = 0; y < 3; y++)
+			if ((squares[0][y] == squares[1][y])
+					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0))
 				return squares[0][y];
-		
+
 		// look for chains of three down
-		for (int x = 0; x < 3; x ++)
-			if ((squares[x][0] == squares[x][1]) && (squares[x][0] == squares[x][2]) && (squares[x][0] != 0))
+		for (int x = 0; x < 3; x++)
+			if ((squares[x][0] == squares[x][1])
+					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0))
 				return squares[x][0];
-		
+
 		// check the diagonals
-		if ((squares[0][0] == squares[1][1]) && (squares[1][1] == squares[2][2]) && (squares[1][1] != 0))
+		if ((squares[0][0] == squares[1][1])
+				&& (squares[1][1] == squares[2][2]) && (squares[1][1] != 0))
 			return squares[1][1];
-		if ((squares[2][0] == squares[1][1]) && (squares[1][1] == squares[0][2]) && (squares[1][1] != 0))
+		if ((squares[2][0] == squares[1][1])
+				&& (squares[1][1] == squares[0][2]) && (squares[1][1] != 0))
 			return squares[1][1];
-	
+
 		return 0;
 	}
-	
 
 	public int getWhosTurn() {
 		return currentTurn_;
@@ -106,10 +122,14 @@ public class Board {
 		}
 	}
 
+	/**
+	 * Alias for !isGameInProgress
+	 * 
+	 * @return
+	 */
 	public boolean isGameOver() {
-		return (WINNER != 0) || (this.isGameInProgress() == false);
+		return inProgress_;
 	}
-
 
 	/**
 	 * 
@@ -161,7 +181,7 @@ public class Board {
 	public void endGame() {
 		inProgress_ = false;
 		GameServer gs = GameServer.getInstance();
-		
+
 		if (isGameOver()) {
 			// game finished normally
 			gs.sendCmd(sock_, gs.cmdGameOver);
