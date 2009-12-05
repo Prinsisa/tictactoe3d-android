@@ -1,12 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<TextView  
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/hello"
-    />
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+
+
+	<TextView android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="Opponent's IP Address"></TextView>
+
+	<EditText android:layout_height="wrap_content"
+		android:layout_width="fill_parent" android:id="@+id/server" android:text="10.24.7"></EditText>
+
+	<TextView android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="Opponent's Port"></TextView>
+
+	<EditText android:layout_height="wrap_content"
+		android:layout_width="fill_parent" android:id="@+id/port"
+		android:text="1234"></EditText>
+
+
+	<Button android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="Send Request"
+		android:id="@+id/btnSendRequest"></Button>
+
+	<TextView android:id="@+id/lblMyIP" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="My IP: Looking up now..." android:paddingLeft="10px"></TextView>
+		
+	<Button android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="Single Player Mode"
+		android:id="@+id/btnSinglePlayer" android:layout_marginTop="20px" android:layout_gravity="bottom|right"></Button>
+
 </LinearLayout>
