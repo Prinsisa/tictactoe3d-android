@@ -27,6 +27,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	public int backingWidth;
 	public int backingHeight;
 	public Board board;
+	private float boardTileAnimationFractions[][] = new float[3][3];
 	
 	// OpenGL Models
 	private GLModel xPiece;
@@ -41,8 +42,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 
 	private float touchAge = 0;
 	private Point touchLocation = null;
-	private float backgroundRotation = 0;
 	private float animateFraction = 0;
+	
+	private float myTurnAnimationFraction = 0;
 	
 	private BoardGLViewDelegate delegate;
 	
@@ -135,9 +137,14 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    star.draw();
 	    star.pitch = -star.pitch + 40;
 
-	    gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-	    sign_plane.draw();
-	    gl.glDisable(GL11.GL_BLEND);
+	    if (board.isMyTurn() == true){
+	    	if (myTurnAnimationFraction < 1)
+	    		myTurnAnimationFraction = (float) Math.max(myTurnAnimationFraction + 0.01 + (1-myTurnAnimationFraction) * 0.25, 1);
+	    	gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		    sign_plane.y = - (1-myTurnAnimationFraction) * 10;
+	    	sign_plane.draw();
+		    gl.glDisable(GL11.GL_BLEND);
+	    }
 	    
 	    // look from camera XYZ, look at the origin, positive Y up vector
 	    gl.glLoadIdentity();
@@ -154,18 +161,28 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 
 	    for (int x = 0; x < 3; x ++){
 	    	for (int y = 0; y < 3; y++){
+	    		float fraction = boardTileAnimationFractions[x][y];
+	    		float yOffset = (1-fraction) * 10;
+
+	    		if (fraction < 1)
+	    			boardTileAnimationFractions[x][y] += 0.1;
+
+    			gl.glColor4f(1, 1, 1, fraction);
 	    		gl.glTranslatef((x-1) * 11f, 0, (y-1) * 11f);
 	    		if (board.valueInSquare(x, y) != 0){
 	    			gl.glEnable(GL11.GL_BLEND);
 	    		    pieceShadow.draw();
 	    		    gl.glDisable(GL11.GL_BLEND);
 	    		}
+
+    			gl.glTranslatef(0, yOffset, 0);
 	    		if (board.valueInSquare(x, y) == 1)
 	    			xPiece.draw();
 	    		
 	    		if (board.valueInSquare(x, y) == 2)
 	    		    oPiece.draw();
-	    		
+
+    			gl.glTranslatef(0, -yOffset, 0);
 	    		gl.glTranslatef(-(x-1) * 11f, 0, -(y-1) * 11f);
 	    		
 	    	}
@@ -256,6 +273,11 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	{
 		int[] r = { EGL10.EGL_DEPTH_SIZE, 8, EGL10.EGL_NONE };
 		return r;
+	}
+
+	public void animatePieceDrop(int x, int y) 
+	{
+		boardTileAnimationFractions[x][y] = 0;
 	}
 
 }

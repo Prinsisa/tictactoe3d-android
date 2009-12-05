@@ -48,8 +48,15 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	}
 
 	public void paintSurfaceSquareTouched(int x, int y) {
-		// TODO Auto-generated method stub
-		Log.d("Touch", "User touched square " + x + "," + y);
+
+		int before = gameBoard.valueInSquare(x, y);
+		gameBoard.setValueInSquare(x, y);
+		
+		// get the value from the square and tell the paint surface to drop a tile
+		int after = gameBoard.valueInSquare(x, y);
+		if (after != before){
+			paintView.animatePieceDrop(x, y);
+		}
 		gameBoard.setValueInSquare(x, y);
 	}
 
