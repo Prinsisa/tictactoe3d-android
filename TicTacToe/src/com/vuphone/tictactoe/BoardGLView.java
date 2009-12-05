@@ -219,7 +219,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    		
 	    	gl.glEnable(GL11.GL_BLEND);
 	    	gl.glPushMatrix();
-	    	gl.glTranslatef((1-gameOverAnimationFraction) * 1.0f + 0.12f, -0.31f, 0);
+	    	gl.glTranslatef((1-gameOverAnimationFraction) * 1.0f + 0.10f, -0.31f, 0);
 	    	gl.glScalef(0.75f, 0.75f, 1);
 	    	if (board.getWinner() == board.getMyPlayerID())
 	    		winner_plane.draw();
@@ -229,7 +229,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    	
 	    	gl.glPushMatrix();
 	    	gl.glScalef(0.6f, 2.4f, 1.0f);
-	    	gl.glTranslatef((1-gameOverAnimationFraction) * -1.0f - 0.2f, -0.31f, 1);
+	    	gl.glTranslatef((1-gameOverAnimationFraction) * -1.0f - 0.24f, -0.31f, 1);
 	    	girl_plane.draw();
 	    	gl.glPopMatrix();
 	    	
