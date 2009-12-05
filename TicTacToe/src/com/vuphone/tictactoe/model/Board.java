@@ -128,7 +128,7 @@ public class Board {
 	 * @return
 	 */
 	public boolean isGameOver() {
-		return inProgress_;
+		return !inProgress_;
 	}
 
 	/**
