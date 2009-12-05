@@ -15,7 +15,7 @@ public class Board {
 	private static Board instance_ = null;
 	private Socket sock_ = null;
 	private static GameServer gameServer = GameServer.getInstance();
-	
+
 	private int squares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 
 	protected Board() {
@@ -34,15 +34,15 @@ public class Board {
 
 	public void setValueInSquare(int x, int y) {
 		// is this piece already set?
-		if(squares[x][y] != 0)
+		if (squares[x][y] != 0)
 			return;
-		
+
 		if (isNetworkedGame() && currentTurn_ == PLAYER_ME) {
 			squares[x][y] = currentTurn_;
 			setWhosTurn(PLAYER_ME == 1 ? 2 : 1);
 
 			// notify remote user of change
-			String cmd = gameServer.buildBoardUpdateCmd(x,y);
+			String cmd = gameServer.buildBoardUpdateCmd(x, y);
 			gameServer.sendCmd(sock_, cmd);
 		} else if (!isNetworkedGame()) {
 			squares[x][y] = currentTurn_;
@@ -53,8 +53,8 @@ public class Board {
 	public int getWhosTurn() {
 		return currentTurn_;
 	}
-	
-	public int getMyPlayerID(){
+
+	public int getMyPlayerID() {
 		return PLAYER_ME;
 	}
 
@@ -94,7 +94,9 @@ public class Board {
 	}
 
 	private void clearBoard() {
-		
+		for (int x = 0; x < 3; ++x)
+			for (int y = 0; y < 3; ++y)
+				squares[x][y] = 0;
 	}
 
 	public Socket getOpponentSocket() {
@@ -109,13 +111,13 @@ public class Board {
 		return (sock_ == null) ? false : true;
 	}
 
-	public boolean isMyTurn(){
-		if(isNetworkedGame())
+	public boolean isMyTurn() {
+		if (isNetworkedGame())
 			return getMyPlayerID() == getWhosTurn();
 		else
 			return true;
 	}
-	
+
 	public void endGame() {
 		inProgress_ = false;
 
@@ -137,7 +139,7 @@ public class Board {
 			public void run() {
 				while (Board.getInstance().isGameInProgress()) {
 					String cmd = gameServer.readCmdFromSocket(sock_, 5);
-					if(cmd != null)
+					if (cmd != null)
 						gameServer.parseInGameCmd(cmd);
 				}
 			}
