@@ -2,6 +2,8 @@ package com.vuphone.tictactoe.model;
 
 import java.net.Socket;
 
+import com.vuphone.tictactoe.GameServer;
+
 public class Board {
 
 	public static int PLAYER_1 = 1;
@@ -30,7 +32,15 @@ public class Board {
 	}
 
 	public void setValueInSquare(int x, int y, int v) {
-		squares[x][y] = v;
+		if (isNetworkedGame() && currentTurn_ == PLAYER_ME) {
+			squares[x][y] = currentTurn_;
+			setWhosTurn(PLAYER_ME == 1 ? 2 : 1);
+
+			// notify remote user of change
+		} else if (!isNetworkedGame()) {
+			squares[x][y] = currentTurn_;
+			setWhosTurn(PLAYER_ME == 1 ? 2 : 1);
+		}
 	}
 
 	public int getWhosTurn() {
@@ -80,5 +90,21 @@ public class Board {
 
 	public void setOpponentSocket(Socket s) {
 		sock_ = s;
+	}
+
+	public boolean isNetworkedGame() {
+		return (sock_ == null) ? false : true;
+	}
+
+	public void endGame() {
+		inProgress_ = false;
+
+		if (isGameOver()) {
+			// game finished normally
+		} else {
+			// we exited prematurely
+		}
+
+		GameServer.getInstance().sendPlayerExited(sock_);
 	}
 }
