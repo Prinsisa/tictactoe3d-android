@@ -2,7 +2,6 @@ package com.vuphone.tictactoe;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -40,6 +39,7 @@ public class GameServer extends Thread {
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
 	private final String cmdGameInProgress = "<cmd>GAME-IN-PROGRESS</cmd>";
 	private final String cmdPlayerExited = "<cmd>PLAYER-EXITED-GAME</cmd>";
+	private final String cmdBoardUpdate = "<cmd><boardupdate/>";
 
 	public GameServer() {
 		super("GameServer");
@@ -57,11 +57,11 @@ public class GameServer extends Thread {
 		}
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
-		
+
 		// lets find our IP address
 		try {
 			Socket socket = new Socket("www.google.com", 80);
-			socket.setSoTimeout(1500);
+			socket.setSoTimeout(2500);
 			listening_ip_ = socket.getLocalAddress().toString().substring(1);
 			socket.close();
 		} catch (Exception e) {
@@ -87,7 +87,7 @@ public class GameServer extends Thread {
 						+ sock.getRemoteSocketAddress());
 
 				if (Board.getInstance().isGameInProgress()) {
-					sock.getOutputStream().write(cmdGameInProgress.getBytes());
+					sendCmd(sock, cmdGameInProgress);
 					sock.close();
 				} else {
 
@@ -115,6 +115,10 @@ public class GameServer extends Thread {
 
 	public void die() {
 		SHUTDOWN = true;
+	}
+
+	public String buildBoardUpdateCmd(int x, int y) {
+		return cmdBoardUpdate + x + "," + y + "</cmd>";
 	}
 
 	public void sendGameRequest(final String remoteAddr, final int remotePort) {
@@ -156,35 +160,29 @@ public class GameServer extends Thread {
 	private Socket sendRequest(String remoteAddr, int remotePort) {
 		// write the object
 		Socket sock = getSocket(remoteAddr, remotePort);
-		if (sock == null){
+		if (sock == null) {
 			Log.d("mad", "Couldn't open a socket!");
 			return null;
 		}
-		
+
 		Log.d("mad", "Sending request to " + sock.getRemoteSocketAddress());
-		
-		try {
-			OutputStream out = sock.getOutputStream();
-			out.write(cmdGameRequest.getBytes());
+
+		if (sendCmd(sock, cmdGameRequest))
 			return sock;
-		} catch (Exception e) {
-			System.err.println("Error! Connection to opponent lost!");
-			e.printStackTrace();
-		}
-		return null;
+		else
+			return null;
 	}
 
 	public void responseToRequest(Socket sock, boolean iaccept) {
 		try {
 			if (iaccept)
-				sock.getOutputStream().write(cmdAcceptGame.getBytes());
+				sendCmd(sock, cmdAcceptGame);
 			else {
-				sock.getOutputStream().write(cmdDenyGame.getBytes());
+				sendCmd(sock, cmdDenyGame);
 				sock.close();
 			}
 		} catch (IOException e) {
-			System.err.println("Error! Connection to opponent lost!");
-			e.printStackTrace();
+
 		}
 	}
 
@@ -205,7 +203,10 @@ public class GameServer extends Thread {
 			return RESPONSE_NONE;
 	}
 
-	private String readCmdFromSocket(Socket sock, int timeoutSEC) {
+	public String readCmdFromSocket(Socket sock, int timeoutSEC) {
+		if(sock == null)
+			return null;
+		
 		InputStream in;
 
 		try {
@@ -252,9 +253,9 @@ public class GameServer extends Thread {
 
 	private Socket getSocket(String remoteAddr, int remotePort) {
 		Socket sock = null;
-		
+
 		Log.d("mad", "Opening a socket to " + remoteAddr + ":" + remotePort);
-		
+
 		try {
 			sock = new Socket(remoteAddr, remotePort);
 
@@ -287,11 +288,24 @@ public class GameServer extends Thread {
 
 		return listening_ip_;
 	}
-	
-	public void sendPlayerExited(Socket s){
-		try{
-			s.getOutputStream().write(cmdPlayerExited.getBytes());
+
+	public boolean sendCmd(Socket sock, String cmd) {
+		try {
+			sock.getOutputStream().write(cmd.getBytes());
+			return true;
 		} catch (Exception e) {
+			System.err.println("Error! Connection to opponent lost!");
+			e.printStackTrace();
+			return false;
 		}
+	}
+
+	public void sendPlayerExited(Socket sock) {
+		sendCmd(sock, cmdPlayerExited);
+	}
+
+	public void parseInGameCmd(String s) {
+		Log.d("mad", "InGameCmd received! " + s);
+
 	}
 }
