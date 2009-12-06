@@ -27,7 +27,7 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 		// load the game model
 		gameBoard = Board.getInstance();
-
+	
 		// remove our title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -36,7 +36,8 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 		// create the actual openGL view and setup our custom renderer
 		paintView = new BoardGLView(this, this);
 		setContentView(paintView);
-
+		gameBoard.setPaintView(paintView);
+		
 		// get the OpenGL context from the surface and save it
 		GLManager.getInstance().glContext = paintView.getContext();
 	}
@@ -50,17 +51,8 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 		paintView.requestRender();
 	}
 
-	public void paintSurfaceSquareTouched(int x, int y) {
-
-		int before = gameBoard.valueInSquare(x, y);
-		gameBoard.setValueInSquare(x, y);
-
-		// get the value from the square and tell the paint surface to drop a
-		// tile
-		int after = gameBoard.valueInSquare(x, y);
-		if (after != before) {
-			paintView.animatePieceDrop(x, y);
-		}
+	public void paintSurfaceSquareTouched(int x, int y) 
+	{
 		gameBoard.setValueInSquare(x, y);
 	}
 
