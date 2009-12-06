@@ -65,11 +65,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setClickable(false);
 
 		TextView ip = (TextView) findViewById(R.id.server);
-		TextView port = (TextView) findViewById(R.id.port);
 
 		try {
 			String addy = ip.getText().toString();
-			int p = Integer.parseInt(port.getText().toString());
 
 			//Check for a valid IP
 			Pattern regex = Pattern
@@ -79,7 +77,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			Matcher regexMatcher = regex.matcher(addy);
 
 			if (regexMatcher.matches()){
-				GameServer.getInstance().sendGameRequest(addy, p);
+				GameServer.getInstance().sendGameRequest(addy);
 				return;
 			}
 			

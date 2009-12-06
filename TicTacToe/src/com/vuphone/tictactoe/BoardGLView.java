@@ -202,7 +202,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		gl.glColor4f(1, 1, 1, 1);
 		
 	    if ((myTurnAnimationFraction < 1) && (board.isMyTurn()) && (!board.isGameOver()))
-    		myTurnAnimationFraction = (float) Math.min(myTurnAnimationFraction + 0.002 + (1-myTurnAnimationFraction) * 0.05, 1);
+    		myTurnAnimationFraction = (float) Math.min(myTurnAnimationFraction + 0.002 + (1-myTurnAnimationFraction) * 0.15, 1);
     	else if ((myTurnAnimationFraction > 0) && ((!board.isMyTurn()) || (board.isGameOver())))
     		myTurnAnimationFraction -= 0.1;
 	    
