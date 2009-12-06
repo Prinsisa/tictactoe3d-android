@@ -18,7 +18,7 @@ public class Board {
 	private Socket sock_ = null;
 	private static GameServer gameServer = GameServer.getInstance();
 	private static BoardGLView paintView_ = null;
-	
+
 	private int squares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 	private int winSquares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 
@@ -32,10 +32,10 @@ public class Board {
 		return instance_;
 	}
 
-	public boolean winInSquare(int x, int y){
+	public boolean winInSquare(int x, int y) {
 		return (winSquares[x][y] == 1);
 	}
-	
+
 	public int valueInSquare(int x, int y) {
 		return squares[x][y];
 	}
@@ -76,7 +76,7 @@ public class Board {
 
 	public void setWinner(int player) {
 		WINNER = player;
-		
+
 		if (player != 0)
 			endGame();
 	}
@@ -96,9 +96,9 @@ public class Board {
 	public int findWinner() {
 
 		// look for chains of three across
-		for (int y = 0; y < 3; y++){
+		for (int y = 0; y < 3; y++) {
 			if ((squares[0][y] == squares[1][y])
-					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)){
+					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)) {
 				winSquares[0][y] = 1;
 				winSquares[1][y] = 1;
 				winSquares[2][y] = 1;
@@ -106,9 +106,9 @@ public class Board {
 			}
 		}
 		// look for chains of three down
-		for (int x = 0; x < 3; x++){
+		for (int x = 0; x < 3; x++) {
 			if ((squares[x][0] == squares[x][1])
-					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)){
+					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)) {
 				winSquares[x][0] = 1;
 				winSquares[x][1] = 1;
 				winSquares[x][2] = 1;
@@ -116,11 +116,13 @@ public class Board {
 			}
 		}
 		// check the diagonals
-		if ((squares[0][0] == squares[1][1]) && (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)){
+		if ((squares[0][0] == squares[1][1])
+				&& (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)) {
 			winSquares[0][0] = winSquares[1][1] = winSquares[2][2] = 1;
 			return squares[1][1];
 		}
-		if ((squares[2][0] == squares[1][1]) && (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)){
+		if ((squares[2][0] == squares[1][1])
+				&& (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)) {
 			winSquares[2][0] = winSquares[1][1] = winSquares[0][2] = 1;
 			return squares[1][1];
 		}
@@ -206,14 +208,7 @@ public class Board {
 		inProgress_ = false;
 		GameServer gs = GameServer.getInstance();
 
-		if (isGameOver()) {
-			// game finished normally
-			gs.sendCmd(sock_, gs.cmdGameOver);
-		} else {
-			// we exited prematurely
-			gs.sendCmd(sock_, gs.cmdPlayerExited);
-		}
-
+		gs.sendCmd(sock_, gs.cmdGameOver);
 		sock_ = null;
 	}
 
@@ -232,12 +227,17 @@ public class Board {
 		}).start();
 	}
 
-	public BoardGLView paintView() 
-	{
+	public void prematureEndGame() {
+		GameServer gs = GameServer.getInstance();
+		gs.sendCmd(sock_, gs.cmdPlayerExited);
+		endGame();
+	}
+
+	public BoardGLView paintView() {
 		return paintView_;
 	}
-	public void setPaintView(BoardGLView paintView) 
-	{
+
+	public void setPaintView(BoardGLView paintView) {
 		paintView_ = paintView;
 	}
 }

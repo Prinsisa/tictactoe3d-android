@@ -1,6 +1,8 @@
 package com.vuphone.tictactoe;
 
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -68,10 +70,24 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		try {
 			String addy = ip.getText().toString();
 			int p = Integer.parseInt(port.getText().toString());
-			GameServer.getInstance().sendGameRequest(addy, p);
+
+			//Check for a valid IP
+			Pattern regex = Pattern
+					.compile(
+							"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+							Pattern.MULTILINE);
+			Matcher regexMatcher = regex.matcher(addy);
+
+			if (regexMatcher.matches()){
+				GameServer.getInstance().sendGameRequest(addy, p);
+				return;
+			}
+			
 		} catch (Exception e) {
-			echo("Invalid opponent information!");
 		}
+		
+		echo("Invalid opponent information!");
+		btnStart_.setClickable(true);
 
 	}
 
