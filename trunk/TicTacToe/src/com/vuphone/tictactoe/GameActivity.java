@@ -77,7 +77,7 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		Board.getInstance().endGame();
+		Board.getInstance().prematureEndGame();
 	}
 
 }
