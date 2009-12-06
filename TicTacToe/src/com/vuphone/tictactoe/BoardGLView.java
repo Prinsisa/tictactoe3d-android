@@ -46,7 +46,6 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	
 	private float myTurnAnimationFraction = 0;
 	
-	private Point lastPlacedPiece = null;
 	private int gameWinningPieceAnimationStep = 0;
 	private float gameOverAnimationFraction = 0;
 	
@@ -172,8 +171,8 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    			gl.glEnable(GL11.GL_BLEND);
 	    		    pieceShadow.draw();
 	    		    gl.glDisable(GL11.GL_BLEND);
-
-		    		if ((lastPlacedPiece != null) && ((int)(lastPlacedPiece.x) == x) && ((int)(lastPlacedPiece.y) == y) && (gameWinningPieceAnimationStep % 20 > 10)){
+	    		    
+		    		if (board.winInSquare(x, y) && (gameWinningPieceAnimationStep % 20 > 10)){
 		    			// do not draw piece
 		    		} else {
 		    			gl.glTranslatef(0, yOffset, 0);
@@ -217,7 +216,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    
 	    // draw in the game over objects, if the game is over
 	    if (board.isGameOver()){
-	    	if ((gameWinningPieceAnimationStep < 70) && (boardTileAnimationFractions[(int)lastPlacedPiece.x][(int)lastPlacedPiece.y] >= 1))
+	    	if (gameWinningPieceAnimationStep < 70)
 	    		gameWinningPieceAnimationStep ++;
 	    	
 	    	if ((gameWinningPieceAnimationStep >= 70) && (gameOverAnimationFraction < 1))
@@ -291,6 +290,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 
 	public boolean onTouch(View v, MotionEvent event) 
 	{
+		if (animateFraction < 1)
+			return true;
+		
 		final MotionEvent e = MotionEvent.obtain(event);
 		if (e.getAction() == MotionEvent.ACTION_DOWN)
 			Log.d("Touch","Top Level Got Began");
@@ -349,6 +351,5 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	public void animatePieceDrop(int x, int y) 
 	{
 		boardTileAnimationFractions[x][y] = 0;
-		lastPlacedPiece = new Point(x,y);
 	}
 }
