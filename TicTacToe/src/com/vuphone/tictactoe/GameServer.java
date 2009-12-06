@@ -58,20 +58,8 @@ public class GameServer extends Thread {
 		}
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
-
-		// lets find our IP address
-		try {
-			Socket socket = new Socket("www.google.com", 80);
-			socket.setSoTimeout(2500);
-			listening_ip_ = socket.getLocalAddress().toString().substring(1);
-			socket.close();
-		} catch (Exception e) {
-			try {
-				listening_ip_ = InetAddress.getLocalHost().getHostAddress();
-			} catch (UnknownHostException e1) {
-				listening_ip_ = "No internet connection";
-			}
-		}
+		
+		updateIPAddress();
 
 		Log.d("mad", "IP Addr: " + listening_ip_);
 
@@ -158,6 +146,26 @@ public class GameServer extends Thread {
 		}).start();
 	}
 
+	public String updateIPAddress(){
+		// lets find our IP address
+		try {
+			Socket socket = new Socket("www.google.com", 80);
+			socket.setSoTimeout(2500);
+			listening_ip_ = socket.getLocalAddress().toString().substring(1);
+			socket.close();
+		} catch (Exception e) {
+			try {
+				listening_ip_ = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e1) {
+				listening_ip_ = "No internet connection";
+			}
+		}
+		
+		if(listening_ip_.equals("127.0.0.1"))
+			listening_ip_ = "No internet connection";
+		
+		return listening_ip_;
+	}
 	private Socket sendRequest(String remoteAddr, int remotePort) {
 		// write the object
 		Socket sock = getSocket(remoteAddr, remotePort);
