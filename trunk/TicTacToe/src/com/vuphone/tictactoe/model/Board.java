@@ -20,6 +20,7 @@ public class Board {
 	private static BoardGLView paintView_ = null;
 	
 	private int squares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+	private int winSquares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 
 	protected Board() {
 
@@ -31,6 +32,10 @@ public class Board {
 		return instance_;
 	}
 
+	public boolean winInSquare(int x, int y){
+		return (winSquares[x][y] == 1);
+	}
+	
 	public int valueInSquare(int x, int y) {
 		return squares[x][y];
 	}
@@ -91,24 +96,34 @@ public class Board {
 	public int findWinner() {
 
 		// look for chains of three across
-		for (int y = 0; y < 3; y++)
+		for (int y = 0; y < 3; y++){
 			if ((squares[0][y] == squares[1][y])
-					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0))
+					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)){
+				winSquares[0][y] = 1;
+				winSquares[1][y] = 1;
+				winSquares[2][y] = 1;
 				return squares[0][y];
-
+			}
+		}
 		// look for chains of three down
-		for (int x = 0; x < 3; x++)
+		for (int x = 0; x < 3; x++){
 			if ((squares[x][0] == squares[x][1])
-					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0))
+					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)){
+				winSquares[x][0] = 1;
+				winSquares[x][1] = 1;
+				winSquares[x][2] = 1;
 				return squares[x][0];
-
+			}
+		}
 		// check the diagonals
-		if ((squares[0][0] == squares[1][1])
-				&& (squares[1][1] == squares[2][2]) && (squares[1][1] != 0))
+		if ((squares[0][0] == squares[1][1]) && (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)){
+			winSquares[0][0] = winSquares[1][1] = winSquares[2][2] = 1;
 			return squares[1][1];
-		if ((squares[2][0] == squares[1][1])
-				&& (squares[1][1] == squares[0][2]) && (squares[1][1] != 0))
+		}
+		if ((squares[2][0] == squares[1][1]) && (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)){
+			winSquares[2][0] = winSquares[1][1] = winSquares[0][2] = 1;
 			return squares[1][1];
+		}
 
 		return 0;
 	}
@@ -163,6 +178,9 @@ public class Board {
 		for (int x = 0; x < 3; ++x)
 			for (int y = 0; y < 3; ++y)
 				squares[x][y] = 0;
+		for (int x = 0; x < 3; ++x)
+			for (int y = 0; y < 3; ++y)
+				winSquares[x][y] = 0;
 	}
 
 	public Socket getOpponentSocket() {
