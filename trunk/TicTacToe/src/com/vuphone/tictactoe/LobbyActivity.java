@@ -9,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -133,7 +132,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 						GameServer.getInstance().responseToRequest(sock, true);
 						Board.getInstance().setOpponentSocket(sock);
 						Board.getInstance().startNewGame(2); // receiver is
-																// always 2
+						// always 2
 
 						startActivity(act);
 						return;
@@ -161,11 +160,11 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public static void echo(String msg) {
 		Toast.makeText(context_, msg, Toast.LENGTH_SHORT).show();
 	}
-	
+
 	@Override
-	public void onResume(){
+	public void onResume() {
 		super.onResume();
-		Log.d("mad", "LobbyActivity onResume called!");
 		btnStart_.setClickable(true);
+		GameServer.getInstance().updateIPAddress();
 	}
 }
