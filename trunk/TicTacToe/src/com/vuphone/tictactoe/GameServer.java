@@ -110,14 +110,14 @@ public class GameServer extends Thread {
 		return cmdBoardUpdate + x + "," + y + "</cmd>";
 	}
 
-	public void sendGameRequest(final String remoteAddr, final int remotePort) {
+	public void sendGameRequest(final String remoteAddr) {
 
 		// spawn a new thread to send game request
 		// use guiHandler to callback about response
 
 		new Thread(new Runnable() {
 			public void run() {
-				final Socket sock = sendRequest(remoteAddr, remotePort);
+				final Socket sock = sendRequest(remoteAddr, PORT);
 				LobbyActivity.uiThreadCallback.post(new Runnable() {
 					public void run() {
 						LobbyActivity.getInstance().deliveredRequestCB(

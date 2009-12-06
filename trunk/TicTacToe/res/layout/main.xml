@@ -2,32 +2,26 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical" android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
+	android:layout_height="fill_parent" android:background="@drawable/clouds">
 
 
-	<TextView android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="Opponent's IP Address"></TextView>
+	<TextView android:layout_height="wrap_content" android:text="Opponent's IP Address"
+		android:textColor="#000000" android:layout_width="fill_parent"
+		android:layout_marginLeft="18px" android:layout_marginTop="100px"></TextView>
 
-	<EditText android:layout_height="wrap_content"
-		android:layout_width="fill_parent" android:id="@+id/server" android:text="10.24.7"></EditText>
-
-	<TextView android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="Opponent's Port"></TextView>
-
-	<EditText android:layout_height="wrap_content"
-		android:layout_width="fill_parent" android:id="@+id/port"
-		android:text="1234"></EditText>
-
+	<EditText android:layout_height="wrap_content" android:id="@+id/server"
+		android:text="" android:layout_marginLeft="15px" android:layout_width="252px"></EditText>
 
 	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="Send Request"
-		android:id="@+id/btnSendRequest"></Button>
+		android:id="@+id/btnSendRequest" android:layout_marginLeft="15px"></Button>
 
 	<TextView android:id="@+id/lblMyIP" android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="My IP: Looking up now..." android:paddingLeft="10px"></TextView>
-		
+		android:layout_height="wrap_content" android:text="My IP: Looking up now..."
+		android:textColor="#000000" android:paddingLeft="20px" style="bold" android:textSize="18px"></TextView>
+
 	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="Single Player Mode"
-		android:id="@+id/btnSinglePlayer" android:layout_marginTop="20px" android:layout_gravity="bottom|right"></Button>
+		android:id="@+id/btnSinglePlayer" android:layout_gravity="left" android:layout_marginLeft="127px" android:layout_marginTop="-73px"></Button>
 
 </LinearLayout>
