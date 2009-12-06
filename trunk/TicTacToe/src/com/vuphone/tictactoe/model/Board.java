@@ -2,6 +2,7 @@ package com.vuphone.tictactoe.model;
 
 import java.net.Socket;
 
+import com.vuphone.tictactoe.BoardGLView;
 import com.vuphone.tictactoe.GameServer;
 
 public class Board {
@@ -16,7 +17,8 @@ public class Board {
 	private static Board instance_ = null;
 	private Socket sock_ = null;
 	private static GameServer gameServer = GameServer.getInstance();
-
+	private static BoardGLView paintView_ = null;
+	
 	private int squares[][] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 
 	protected Board() {
@@ -53,6 +55,8 @@ public class Board {
 
 		setWinner(findWinner());
 		checkForFullBoard();
+
+		paintView_.animatePieceDrop(x, y);
 	}
 
 	public void setValueByOpponent(int x, int y) {
@@ -61,6 +65,8 @@ public class Board {
 
 		setWinner(findWinner());
 		checkForFullBoard();
+
+		paintView_.animatePieceDrop(x, y);
 	}
 
 	public void setWinner(int player) {
@@ -206,5 +212,14 @@ public class Board {
 				}
 			}
 		}).start();
+	}
+
+	public BoardGLView paintView() 
+	{
+		return paintView_;
+	}
+	public void setPaintView(BoardGLView paintView) 
+	{
+		paintView_ = paintView;
 	}
 }

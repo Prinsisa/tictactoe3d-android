@@ -45,6 +45,9 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	private float animateFraction = 0;
 	
 	private float myTurnAnimationFraction = 0;
+	
+	private Point lastPlacedPiece = null;
+	private int gameWinningPieceAnimationStep = 0;
 	private float gameOverAnimationFraction = 0;
 	
 	private BoardGLViewDelegate delegate;
@@ -163,24 +166,27 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    		if (fraction < 1)
 	    			boardTileAnimationFractions[x][y] += 0.1;
 
-    			gl.glColor4f(1, 1, 1, fraction);
-	    		gl.glTranslatef((x-1) * 11f, 0, (y-1) * 11f);
 	    		if (board.valueInSquare(x, y) != 0){
+	    			gl.glColor4f(1, 1, 1,fraction);
+		    		gl.glTranslatef((x-1) * 11f, 0, (y-1) * 11f);
 	    			gl.glEnable(GL11.GL_BLEND);
 	    		    pieceShadow.draw();
 	    		    gl.glDisable(GL11.GL_BLEND);
+
+		    		if ((lastPlacedPiece != null) && ((int)(lastPlacedPiece.x) == x) && ((int)(lastPlacedPiece.y) == y) && (gameWinningPieceAnimationStep % 20 > 10)){
+		    			// do not draw piece
+		    		} else {
+		    			gl.glTranslatef(0, yOffset, 0);
+			    		if (board.valueInSquare(x, y) == 1)
+			    			xPiece.draw();
+			    		
+			    		if (board.valueInSquare(x, y) == 2)
+			    		    oPiece.draw();
+		
+		    			gl.glTranslatef(0, (float) -yOffset, 0);
+		    		}
+		    		gl.glTranslatef(-(x-1) * 11f, 0, -(y-1) * 11f);
 	    		}
-
-    			gl.glTranslatef(0, yOffset, 0);
-	    		if (board.valueInSquare(x, y) == 1)
-	    			xPiece.draw();
-	    		
-	    		if (board.valueInSquare(x, y) == 2)
-	    		    oPiece.draw();
-
-    			gl.glTranslatef(0, -yOffset, 0);
-	    		gl.glTranslatef(-(x-1) * 11f, 0, -(y-1) * 11f);
-	    		
 	    	}
 	    }
 
@@ -211,41 +217,46 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    
 	    // draw in the game over objects, if the game is over
 	    if (board.isGameOver()){
-	    	if (gameOverAnimationFraction < 1)
+	    	if ((gameWinningPieceAnimationStep < 70) && (boardTileAnimationFractions[(int)lastPlacedPiece.x][(int)lastPlacedPiece.y] >= 1))
+	    		gameWinningPieceAnimationStep ++;
+	    	
+	    	if ((gameWinningPieceAnimationStep >= 70) && (gameOverAnimationFraction < 1))
 	    		gameOverAnimationFraction = (float) Math.min(gameOverAnimationFraction + 0.01 + (1-gameOverAnimationFraction) * 0.10, 1);
 	    		
-	    	gl.glPushMatrix();
-	    	gl.glTranslatef((1-gameOverAnimationFraction) * 1.0f + 0.10f, -0.31f, 0);
-	    	gl.glScalef(0.75f, 0.75f, 1);
-	    	
-	    	// draw the winner message
-	    	if (board.getWinner() == board.getMyPlayerID())
-	    		sign_plane.setTexture("winPlaneTexture");
-	    	else if (board.getWinner() == 0)
-	    		sign_plane.setTexture("tiePlaneTexture");
-	    	else
-	    		sign_plane.setTexture("losePlaneTexture");
-	    	
-	    	sign_plane.draw();
-	    	gl.glPopMatrix();
-	    	
-	    	// draw the chick
-	    	gl.glPushMatrix();
-	    	gl.glScalef(0.6f, 2.4f, 1.0f);
-	    	gl.glTranslatef((1-gameOverAnimationFraction) * -1.0f - 0.26f, -0.31f, 1);
-	    	sign_plane.setTexture("girlTexture");
-	    	sign_plane.draw();
-	    	gl.glPopMatrix();
-	    	
-	    	// draw the swipe that goes across the screen
-	    	gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-			gl.glPushMatrix();
-	    	gl.glTranslatef(-0.5f + gameOverAnimationFraction * 2f, 0, 0);
-	    	gl.glRotatef(45, 0, 0, 1);
-	    	gl.glScalef(20f, 0.5f, 1.0f);
-	    	sign_plane.setTexture("swipeTexture");
-	    	sign_plane.draw();
-	    	gl.glPopMatrix();
+	    	if (gameOverAnimationFraction > 0){
+		    	gl.glPushMatrix();
+		    	gl.glTranslatef((1-gameOverAnimationFraction) * 1.0f + 0.10f, -0.31f, 0);
+		    	gl.glScalef(0.75f, 0.75f, 1);
+		    	
+		    	// draw the winner message
+		    	if (board.getWinner() == board.getMyPlayerID())
+		    		sign_plane.setTexture("winPlaneTexture");
+		    	else if (board.getWinner() == 0)
+		    		sign_plane.setTexture("tiePlaneTexture");
+		    	else
+		    		sign_plane.setTexture("losePlaneTexture");
+		    	
+		    	sign_plane.draw();
+		    	gl.glPopMatrix();
+		    	
+		    	// draw the chick
+		    	gl.glPushMatrix();
+		    	gl.glScalef(0.6f, 2.4f, 1.0f);
+		    	gl.glTranslatef((1-gameOverAnimationFraction) * -1.0f - 0.26f, -0.31f, 1);
+		    	sign_plane.setTexture("girlTexture");
+		    	sign_plane.draw();
+		    	gl.glPopMatrix();
+		    	
+		    	// draw the swipe that goes across the screen
+		    	gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+				gl.glPushMatrix();
+		    	gl.glTranslatef(-0.5f + gameOverAnimationFraction * 2f, 0, 0);
+		    	gl.glRotatef(45, 0, 0, 1);
+		    	gl.glScalef(20f, 0.5f, 1.0f);
+		    	sign_plane.setTexture("swipeTexture");
+		    	sign_plane.draw();
+		    	gl.glPopMatrix();
+	    	}
 	    }
 	    gl.glDisable(GL11.GL_BLEND);
 	    
@@ -325,17 +336,19 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		}
 	}
 
-	public void touchEnded(MotionEvent event) {
+	public void touchEnded(MotionEvent event) 
+	{
 	}
 
 	public int[] getOptimalOpenGLConfiguration()
 	{
-		int[] r = { EGL10.EGL_DEPTH_SIZE, 8, EGL10.EGL_NONE };
+		int[] r = { EGL10.EGL_DEPTH_SIZE, 16, EGL10.EGL_NONE };
 		return r;
 	}
 
 	public void animatePieceDrop(int x, int y) 
 	{
 		boardTileAnimationFractions[x][y] = 0;
+		lastPlacedPiece = new Point(x,y);
 	}
 }
