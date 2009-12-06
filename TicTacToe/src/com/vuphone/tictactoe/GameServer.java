@@ -312,8 +312,10 @@ public class GameServer extends Thread {
 			int y = v.charAt(2)- 48;
 			board.setValueByOpponent(x,y);
 		} else if(s.equals(cmdPlayerExited)){
-			board.setWinner(board.getMyPlayerID());
-			board.endGame();
+			if(board.isGameInProgress()){
+				board.setWinner(board.getMyPlayerID());
+				board.endGame();
+			}
 		}
 	}
 }

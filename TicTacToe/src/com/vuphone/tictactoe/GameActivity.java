@@ -1,6 +1,7 @@
 package com.vuphone.tictactoe;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
@@ -21,6 +22,9 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		// Prevent the screen from changing orientation when keyboard opens
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		// load the game model
 		gameBoard = Board.getInstance();
@@ -51,10 +55,11 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 		int before = gameBoard.valueInSquare(x, y);
 		gameBoard.setValueInSquare(x, y);
-		
-		// get the value from the square and tell the paint surface to drop a tile
+
+		// get the value from the square and tell the paint surface to drop a
+		// tile
 		int after = gameBoard.valueInSquare(x, y);
-		if (after != before){
+		if (after != before) {
 			paintView.animatePieceDrop(x, y);
 		}
 		gameBoard.setValueInSquare(x, y);
@@ -77,11 +82,12 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 		super.finish();
 	}
-	
+
 	@Override
 	protected void onStop() {
 		super.onStop();
 		Log.d("mad", "GameActivity onStop called!");
 		Board.getInstance().endGame();
 	}
+
 }
