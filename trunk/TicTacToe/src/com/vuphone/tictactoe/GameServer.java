@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +42,11 @@ public class GameServer extends Thread {
 	public final String cmdPlayerExited = "<cmd>PLAYER-EXITED-GAME</cmd>";
 	private final String cmdBoardUpdate = "<cmd><boardupdate/>";
 	public final String cmdGameOver = "<cmd>GAME-OVER</cmd>";
+	private final String cmdPing = "<cmd>PING</cmd>";
+	private final String cmdHello = "<cmd><hello/>";
+
+	private String nameOfPlayer = "";
+	public HashMap<String, String> helloList = new HashMap<String, String>();
 
 	public GameServer() {
 		super("GameServer");
@@ -58,7 +64,7 @@ public class GameServer extends Thread {
 		}
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
-		
+
 		updateIPAddress();
 
 		Log.d("mad", "IP Addr: " + listening_ip_);
@@ -75,9 +81,31 @@ public class GameServer extends Thread {
 				Log.d("mad", "Incoming game request from "
 						+ sock.getRemoteSocketAddress());
 
-				if (Board.getInstance().isGameInProgress()) {
+				String cmd = readCmdFromSocket(sock, 1000);
+				if (cmd == null)
+					continue;
+
+				if (cmd.equals(cmdPing)) {
+					Log.d("mad", "You just got pinged!");
+					sendCmd(sock, buildHelloCmd());
+					sock.close();
+
+				} else if (cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
+					String name = cmdHello.replaceAll("<[^<>]+>", "");
+					String ip = getRemoteIP(sock);
+
+					synchronized (helloList) {
+						if (!helloList.containsKey(ip)) {
+							helloList.put(ip, name);
+						}
+					}
+
+					sock.close();
+
+				} else if (Board.getInstance().isGameInProgress()) {
 					sendCmd(sock, cmdGameInProgress);
 					sock.close();
+
 				} else {
 
 					LobbyActivity.uiThreadCallback.post(new Runnable() {
@@ -108,6 +136,15 @@ public class GameServer extends Thread {
 
 	public String buildBoardUpdateCmd(int x, int y) {
 		return cmdBoardUpdate + x + "," + y + "</cmd>";
+	}
+
+	public String buildHelloCmd() {
+		return cmdHello + nameOfPlayer + "</cmd>";
+	}
+
+	public String getRemoteIP(Socket sock) {
+		String ip = sock.getRemoteSocketAddress().toString();
+		return ip.substring(0, ip.indexOf('/'));
 	}
 
 	public void sendGameRequest(final String remoteAddr) {
@@ -146,7 +183,7 @@ public class GameServer extends Thread {
 		}).start();
 	}
 
-	public String updateIPAddress(){
+	public String updateIPAddress() {
 		// lets find our IP address
 		try {
 			Socket socket = new Socket("www.google.com", 80);
@@ -160,12 +197,13 @@ public class GameServer extends Thread {
 				listening_ip_ = "No internet connection";
 			}
 		}
-		
-		if(listening_ip_.equals("127.0.0.1"))
+
+		if (listening_ip_.equals("127.0.0.1"))
 			listening_ip_ = "No internet connection";
-		
+
 		return listening_ip_;
 	}
+
 	private Socket sendRequest(String remoteAddr, int remotePort) {
 		// write the object
 		Socket sock = getSocket(remoteAddr, remotePort);
@@ -197,8 +235,6 @@ public class GameServer extends Thread {
 
 	private int waitOnGameRequest(Socket sock) {
 		String s = readCmdFromSocket(sock, 8);
-		if (s != null)
-			Log.d("mad", "Got a packet! " + s);
 
 		if (s == null)
 			return RESPONSE_NONE;
@@ -213,9 +249,9 @@ public class GameServer extends Thread {
 	}
 
 	public String readCmdFromSocket(Socket sock, int timeoutSEC) {
-		if(sock == null)
+		if (sock == null)
 			return null;
-		
+
 		InputStream in;
 
 		try {
@@ -312,15 +348,15 @@ public class GameServer extends Thread {
 	public void parseInGameCmd(String s) {
 		Log.d("mad", "InGameCmd received! " + s);
 		Board board = Board.getInstance();
-		
+
 		int updateLen = cmdBoardUpdate.length();
-		if(s.substring(0, updateLen).equals(cmdBoardUpdate)){
+		if (s.substring(0, updateLen).equals(cmdBoardUpdate)) {
 			String v = s.substring(updateLen, updateLen + 3);
-			int x = v.charAt(0)- 48;
-			int y = v.charAt(2)- 48;
-			board.setValueByOpponent(x,y);
-		} else if(s.equals(cmdPlayerExited)){
-			if(board.isGameInProgress()){
+			int x = v.charAt(0) - 48;
+			int y = v.charAt(2) - 48;
+			board.setValueByOpponent(x, y);
+		} else if (s.equals(cmdPlayerExited)) {
+			if (board.isGameInProgress()) {
 				board.setWinner(board.getMyPlayerID());
 				board.endGame();
 			}
