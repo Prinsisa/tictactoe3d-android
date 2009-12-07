@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.BindException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -90,18 +91,6 @@ public class GameServer extends Thread {
 					sendCmd(sock, buildHelloCmd());
 					sock.close();
 
-				} else if (cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
-					String name = cmdHello.replaceAll("<[^<>]+>", "");
-					String ip = getRemoteIP(sock);
-
-					synchronized (helloList) {
-						if (!helloList.containsKey(ip)) {
-							helloList.put(ip, name);
-						}
-					}
-
-					sock.close();
-
 				} else if (Board.getInstance().isGameInProgress()) {
 					sendCmd(sock, cmdGameInProgress);
 					sock.close();
@@ -181,6 +170,62 @@ public class GameServer extends Thread {
 				});
 			}
 		}).start();
+	}
+
+	public void pingTheLan() {
+		// Just scan the 243 machines in the last octect for now
+		final String myIP = getMyIP();
+		if (myIP == null || myIP.charAt(0) == 'N')
+			return;
+
+		final String baseIP = myIP.substring(0, myIP.lastIndexOf(".", myIP.length()-1));
+
+		// spawn 17 threads to ping the subnet
+		for (int i = 0; i < 17; ++i){
+			final int start = i * 15;
+			final int end = start + 15;
+			
+			new Thread(new Runnable() {
+				public void run() {
+					for (int j = start; j < end; ++j){
+						String node = baseIP + "." + j;
+						if(!node.equals(myIP))
+							pingMachine(node);
+					}
+				}
+			}).start();
+		}
+	}
+
+	private boolean pingMachine(String ip) {
+		Socket sock = new Socket();
+		try {
+			sock.connect(new InetSocketAddress(ip, PORT), 500); // 500ms timeout
+		} catch (Exception e) {
+			return false;
+		}
+
+		sendCmd(sock, cmdPing);
+
+		String cmd = readCmdFromSocket(sock, 1);
+		try {
+			sock.close();
+		} catch (IOException e) {
+		}
+
+		if (cmd != null && cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
+			String name = cmdHello.replaceAll("<[^<>]+>", "");
+
+			synchronized (helloList) {
+				if (!helloList.containsKey(ip)) {
+					helloList.put(ip, name);
+				}
+			}
+			Log.d("mad", "Found opponent: " + name);
+			return true;
+		}
+
+		return false;
 	}
 
 	public String updateIPAddress() {

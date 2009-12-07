@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Layout;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -48,6 +47,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		// Get IP addr
 		String ip = GameServer.getInstance().getMyIP();
 		((TextView) findViewById(R.id.lblMyIP)).setText("My IP: " + ip);
+		
+		GameServer.getInstance().pingTheLan();
 	}
 
 	/**
@@ -193,6 +194,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public void onResume() {
 		super.onResume();
 		btnStart_.setClickable(true);
-		GameServer.getInstance().updateIPAddress();
+		String ip = GameServer.getInstance().updateIPAddress();
+		((TextView) findViewById(R.id.lblMyIP)).setText("My IP: " + ip);
 	}
 }
