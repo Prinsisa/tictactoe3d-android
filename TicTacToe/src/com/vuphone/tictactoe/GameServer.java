@@ -8,7 +8,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +23,8 @@ import com.vuphone.tictactoe.model.Board;
  * 
  */
 public class GameServer extends Thread {
+
+	public static final int PEER_THREAD_COUNT = 17;
 
 	private static GameServer instance_ = null;
 
@@ -47,7 +50,9 @@ public class GameServer extends Thread {
 	private final String cmdHello = "<cmd><hello/>";
 
 	private String nameOfPlayer = "TicTacToe Player";
-	public HashMap<String, String> helloList = new HashMap<String, String>();
+	public ConcurrentHashMap<String, String> helloList = new ConcurrentHashMap<String, String>();
+
+	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);
 
 	public GameServer() {
 		super("GameServer");
@@ -173,25 +178,29 @@ public class GameServer extends Thread {
 	}
 
 	public void pingTheLan() {
+		peerThreadsComplete.set(0);
+
 		// Just scan the 243 machines in the last octect for now
 		final String myIP = getMyIP();
 		if (myIP == null || myIP.charAt(0) == 'N')
 			return;
 
-		final String baseIP = myIP.substring(0, myIP.lastIndexOf(".", myIP.length()-1));
+		final String baseIP = myIP.substring(0, myIP.lastIndexOf(".", myIP
+				.length() - 1));
 
 		// spawn 17 threads to ping the subnet
-		for (int i = 0; i < 17; ++i){
-			final int start = i * 15;
-			final int end = start + 15;
-			
+		for (int i = 0; i < PEER_THREAD_COUNT; ++i) {
+			final int start = i * 255 / PEER_THREAD_COUNT;
+			final int end = start + 255 / PEER_THREAD_COUNT;
+
 			new Thread(new Runnable() {
 				public void run() {
-					for (int j = start; j < end; ++j){
+					for (int j = start; j < end; ++j) {
 						String node = baseIP + "." + j;
-						if(!node.equals(myIP))
+						if (!node.equals(myIP))
 							pingMachine(node);
 					}
+					peerThreadsComplete.incrementAndGet();
 				}
 			}).start();
 		}
@@ -216,11 +225,13 @@ public class GameServer extends Thread {
 		if (cmd != null && cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
 			String name = cmdHello.replaceAll("<[^<>]+>", "");
 
+			if (!helloList.containsKey(ip))
+				helloList.put(ip, name);
+
 			synchronized (helloList) {
-				if (!helloList.containsKey(ip)) {
-					helloList.put(ip, name);
-				}
+				helloList.notifyAll();
 			}
+
 			Log.d("mad", "Found opponent: " + name);
 			return true;
 		}
@@ -384,8 +395,7 @@ public class GameServer extends Thread {
 			sock.getOutputStream().write(cmd.getBytes());
 			return true;
 		} catch (Exception e) {
-			System.err.println("Error! Connection to opponent lost!");
-			e.printStackTrace();
+			Log.d("mad","Error! Connection to opponent lost!");
 			return false;
 		}
 	}
