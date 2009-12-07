@@ -9,8 +9,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Layout;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -88,7 +90,19 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setClickable(true);
 
 	}
-
+	
+	public void onConfigurationChanged (Configuration newConfig)
+	{
+		View l = this.findViewById(R.id.container);
+		
+		super.onConfigurationChanged(newConfig);
+		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+			l.setBackgroundResource(R.drawable.splashlandscape);
+		} else {
+			l.setBackgroundResource(R.drawable.splash);
+		}
+	}
+	
 	public void deliveredRequestCB(boolean success) {
 		if (success) {
 			echo("Delivered request! Awaiting reply...");

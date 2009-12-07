@@ -135,7 +135,10 @@ public class Board {
 	}
 
 	public int getMyPlayerID() {
-		return PLAYER_ME;
+		if (this.isNetworkedGame())
+			return PLAYER_ME;
+		else
+			return this.getWinner();
 	}
 
 	public void setWhosTurn(int turn) {
