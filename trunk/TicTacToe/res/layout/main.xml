@@ -5,7 +5,7 @@
 	android:layout_height="fill_parent" android:background="@drawable/splash">
 
 	<EditText android:layout_height="wrap_content" android:id="@+id/server"
-		android:text="" android:layout_marginLeft="15px" android:layout_marginTop="115px" android:layout_width="252px" android:hint="Opponent's IP Address" android:digits="True"></EditText>
+		android:text="" android:layout_marginLeft="15px" android:layout_marginTop="105px" android:layout_width="252px" android:hint="Opponent's IP Address" android:digits="True"></EditText>
 
 	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="Send Request"
@@ -14,9 +14,13 @@
 	<TextView android:id="@+id/lblMyIP" android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="My IP: Looking up now..."
 		android:textColor="#000000" android:paddingLeft="20px" android:textSize="18px" style="Bold"></TextView>
+		
+	<TextView android:id="@+id/lblPeers" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="No peers detected"
+		android:textColor="#000000" android:paddingLeft="20px" android:textSize="18px" style="Bold"></TextView>
 
 	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="Single Player Mode"
-		android:id="@+id/btnSinglePlayer" android:layout_gravity="left" android:layout_marginLeft="127px" android:layout_marginTop="-73px"></Button>
+		android:id="@+id/btnSinglePlayer" android:layout_gravity="left" android:layout_marginLeft="127px" android:layout_marginTop="-97px"></Button>
 
 </LinearLayout>

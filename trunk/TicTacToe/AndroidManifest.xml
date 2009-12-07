@@ -11,6 +11,7 @@
             </intent-filter>
         </activity>
 		<activity android:name=".GameActivity" android:configChanges="keyboardHidden|orientation"></activity>
+		<activity android:name=".PeerListActivity"></activity>
     </application>
     <uses-sdk android:minSdkVersion="3" />
 <uses-permission android:name="android.permission.INTERNET"/>

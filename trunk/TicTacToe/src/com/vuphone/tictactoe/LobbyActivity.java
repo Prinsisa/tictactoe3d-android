@@ -12,15 +12,19 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vuphone.tictactoe.model.Board;
 
-public class LobbyActivity extends Activity implements OnClickListener {
+public class LobbyActivity extends Activity implements OnClickListener,
+		OnTouchListener {
 
 	private static Context context_ = null;
 	private static LobbyActivity instance_ = null;
@@ -44,11 +48,10 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setOnClickListener(this);
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 
-		// Get IP addr
-		String ip = GameServer.getInstance().getMyIP();
-		((TextView) findViewById(R.id.lblMyIP)).setText("My IP: " + ip);
-		
-		GameServer.getInstance().pingTheLan();
+		// Display the IP address
+		setViewIPAddress(GameServer.getInstance().getMyIP());
+
+		initializePeerList();
 	}
 
 	/**
@@ -72,38 +75,56 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		try {
 			String addy = ip.getText().toString();
 
-			//Check for a valid IP
+			// Check for a valid IP
 			Pattern regex = Pattern
 					.compile(
 							"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
 							Pattern.MULTILINE);
 			Matcher regexMatcher = regex.matcher(addy);
 
-			if (regexMatcher.matches()){
+			if (regexMatcher.matches()) {
 				GameServer.getInstance().sendGameRequest(addy);
 				return;
 			}
-			
+
 		} catch (Exception e) {
 		}
-		
+
 		echo("Invalid opponent information!");
 		btnStart_.setClickable(true);
 
 	}
-	
-	public void onConfigurationChanged (Configuration newConfig)
-	{
+
+	public void initializePeerList() {
+		TextView peers = (TextView) findViewById(R.id.lblPeers);
+		peers.setOnTouchListener(this);
+
+		GameServer.getInstance().pingTheLan();
+	}
+
+	public void onConfigurationChanged(Configuration newConfig) {
 		View l = this.findViewById(R.id.container);
-		
+
 		super.onConfigurationChanged(newConfig);
-		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 			l.setBackgroundResource(R.drawable.splashlandscape);
 		} else {
 			l.setBackgroundResource(R.drawable.splash);
 		}
 	}
-	
+
+	public void setViewIPAddress(String ip) {
+		if (ip == null)
+			return;
+
+		((TextView) findViewById(R.id.lblMyIP)).setText("My IP: " + ip);
+	}
+
+	public synchronized void setViewPeerCount(int peers) {
+		((TextView) findViewById(R.id.lblPeers)).setText("Found " + peers
+				+ " other players!");
+	}
+
 	public void deliveredRequestCB(boolean success) {
 		if (success) {
 			echo("Delivered request! Awaiting reply...");
@@ -179,6 +200,33 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		dialog.show();
 	}
 
+	public void updatePeerCount() {
+		final GameServer gs = GameServer.getInstance();
+
+		if (gs.peerThreadsComplete.equals(GameServer.PEER_THREAD_COUNT))
+			setViewPeerCount(gs.helloList.size());
+		else {
+			new Thread(new Runnable() {
+				public void run() {
+					int count = 0;
+					while (!gs.peerThreadsComplete
+							.equals(GameServer.PEER_THREAD_COUNT)
+							&& ++count < 20) {
+
+						try {
+							synchronized (gs.helloList) {
+								gs.helloList.wait(500);
+							}
+						} catch (InterruptedException e) {
+						}
+
+						setViewPeerCount(gs.helloList.size());
+					}
+				}
+			}).start();
+		}
+	}
+
 	public static LobbyActivity getInstance() {
 		if (instance_ == null)
 			System.err.println("Error! LobbyAct->getInst before onCreate");
@@ -190,11 +238,49 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		Toast.makeText(context_, msg, Toast.LENGTH_SHORT).show();
 	}
 
+	/**
+	 * Called when PeerListActivity is closed
+	 */
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		// Re-enable the peers onTouch button
+		if (requestCode == 69)
+			((TextView) findViewById(R.id.lblPeers)).setEnabled(true);
+
+		if (resultCode == RESULT_CANCELED || data == null)
+			return;
+
+		Bundle extras = data.getExtras();
+
+		if (data.getExtras() != null) {
+			String ip = extras.getString("ip");
+
+			// Autofill the IP in the IP Box
+			((EditText) findViewById(R.id.server)).setText(ip);
+		}
+	}
+
 	@Override
 	public void onResume() {
 		super.onResume();
+
 		btnStart_.setClickable(true);
-		String ip = GameServer.getInstance().updateIPAddress();
-		((TextView) findViewById(R.id.lblMyIP)).setText("My IP: " + ip);
+		setViewIPAddress(GameServer.getInstance().updateIPAddress());
+	}
+
+	/**
+	 * Called when the peer status text is touched
+	 */
+	public boolean onTouch(View v, MotionEvent event) {
+		super.onTouchEvent(event);
+
+		if (v.getId() == R.id.lblPeers) {
+			v.setEnabled(false);
+			Intent i = new Intent(this, PeerListActivity.class);
+			startActivityForResult(i, 69);
+		}
+		return true;
 	}
 }
