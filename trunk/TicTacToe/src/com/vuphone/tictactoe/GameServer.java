@@ -46,7 +46,7 @@ public class GameServer extends Thread {
 	private final String cmdPing = "<cmd>PING</cmd>";
 	private final String cmdHello = "<cmd><hello/>";
 
-	private String nameOfPlayer = "";
+	private String nameOfPlayer = "TicTacToe Player";
 	public HashMap<String, String> helloList = new HashMap<String, String>();
 
 	public GameServer() {
