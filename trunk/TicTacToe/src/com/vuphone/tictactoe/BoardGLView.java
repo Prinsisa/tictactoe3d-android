@@ -1,5 +1,7 @@
 package com.vuphone.tictactoe;
 
+import java.util.Random;
+
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -100,11 +102,15 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		m.loadTextureWithName("itsyourturnTexture", BitmapFactory.decodeResource(res, R.drawable.itsyourturn));
 		m.loadTextureWithName("shadowTexture", BitmapFactory.decodeResource(res, R.drawable.shadow));
 		m.loadTextureWithName("touchTexture", BitmapFactory.decodeResource(res, R.drawable.touch));
-		m.loadTextureWithName("girlTexture", BitmapFactory.decodeResource(res, R.drawable.winnergirl));
 		m.loadTextureWithName("winPlaneTexture", BitmapFactory.decodeResource(res, R.drawable.winner));
 		m.loadTextureWithName("losePlaneTexture", BitmapFactory.decodeResource(res, R.drawable.loser));
 		m.loadTextureWithName("tiePlaneTexture", BitmapFactory.decodeResource(res, R.drawable.tie));
 		m.loadTextureWithName("swipeTexture", BitmapFactory.decodeResource(res, R.drawable.swipe));
+		
+		if (new Random().nextBoolean() == true)
+			m.loadTextureWithName("girlTexture", BitmapFactory.decodeResource(res, R.drawable.winnergirl));
+		else
+			m.loadTextureWithName("girlTexture", BitmapFactory.decodeResource(res, R.drawable.winnergirl2));
 	}
 	
 	public void onDrawFrame(GL10 gl) {
