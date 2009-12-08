@@ -129,7 +129,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 			return;
 		
 		Button t = (Button) findViewById(R.id.btnPeers);
-		t.setText("Finding peers... " + peers);
+		t.setText("Finding peers (" + peers + ")");
 	}
 
 	public void deliveredRequestCB(boolean success) {
@@ -256,10 +256,6 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		// Re-enable the peers onTouch button
-		if (requestCode == 69)
-			((Button) findViewById(R.id.btnPeers)).setEnabled(true);
-
 		if (resultCode == RESULT_CANCELED || data == null)
 			return;
 
@@ -288,7 +284,6 @@ public class LobbyActivity extends Activity implements OnClickListener,
 		super.onTouchEvent(event);
 
 		if (v.getId() == R.id.btnPeers) {
-			v.setEnabled(false);
 			Intent i = new Intent(this, PeerListActivity.class);
 			startActivityForResult(i, 69);
 		}

@@ -185,26 +185,27 @@ public class GameServer extends Thread {
 		if (myIP == null || myIP.charAt(0) == 'N')
 			return;
 
-		String baseIP = myIP.substring(0, myIP.lastIndexOf(".",
-				myIP.length() - 1));
+		
 
-		int lastDigit = baseIP.charAt(baseIP.length() - 1) - 48;
-		baseIP = baseIP.substring(0, baseIP.length() - 1);
+		String digits[] = myIP.split("\\.");
+		String baseIP = digits[0] + "." + digits[1] + ".";
+		
+		int thirdOctet = Integer.parseInt(digits[2]);
 
-		// 123.123.123.x
-		pingTheSubnet(baseIP + lastDigit, myIP);
+		thirdOctet = (int) Math.floor(thirdOctet / 4.0) * 4;
+		Log.d("mad","Last digit = " + thirdOctet);
+		
+		// 123.123.124.x
+		pingTheSubnet(baseIP + (thirdOctet + 0), myIP);
 
-		if (lastDigit > 1) {
-			try {
-				Thread.sleep(5000);
-			} catch (Exception e) {
-			}
-			// 123.123.124.x
-			pingTheSubnet(baseIP + (lastDigit + 1), myIP);
+		// 123.123.125.x
+		pingTheSubnet(baseIP + (thirdOctet + 1), myIP);
 
-			// 123.123.125.x
-			pingTheSubnet(baseIP + (lastDigit - 1), myIP);
-		}
+		// 123.123.125.x
+		pingTheSubnet(baseIP + (thirdOctet + 2), myIP);
+		
+		// 123.123.125.x
+		pingTheSubnet(baseIP + (thirdOctet + 3), myIP);
 	}
 
 	private void pingTheSubnet(final String baseIP, final String myIP) {
@@ -227,7 +228,7 @@ public class GameServer extends Thread {
 	}
 
 	private boolean pingMachine(String ip) {
-		Log.d("Mad",ip);
+		Log.d("mad", "Pinging: " + ip);
 		Socket sock = new Socket();
 
 		try {
