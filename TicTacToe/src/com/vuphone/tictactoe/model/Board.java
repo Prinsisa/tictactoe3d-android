@@ -97,8 +97,7 @@ public class Board {
 
 		// look for chains of three across
 		for (int y = 0; y < 3; y++) {
-			if ((squares[0][y] == squares[1][y])
-					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)) {
+			if ((squares[0][y] == squares[1][y]) && (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)) {
 				winSquares[0][y] = 1;
 				winSquares[1][y] = 1;
 				winSquares[2][y] = 1;
@@ -107,8 +106,7 @@ public class Board {
 		}
 		// look for chains of three down
 		for (int x = 0; x < 3; x++) {
-			if ((squares[x][0] == squares[x][1])
-					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)) {
+			if ((squares[x][0] == squares[x][1]) && (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)) {
 				winSquares[x][0] = 1;
 				winSquares[x][1] = 1;
 				winSquares[x][2] = 1;
@@ -116,13 +114,11 @@ public class Board {
 			}
 		}
 		// check the diagonals
-		if ((squares[0][0] == squares[1][1])
-				&& (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)) {
+		if ((squares[0][0] == squares[1][1]) && (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)) {
 			winSquares[0][0] = winSquares[1][1] = winSquares[2][2] = 1;
 			return squares[1][1];
 		}
-		if ((squares[2][0] == squares[1][1])
-				&& (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)) {
+		if ((squares[2][0] == squares[1][1]) && (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)) {
 			winSquares[2][0] = winSquares[1][1] = winSquares[0][2] = 1;
 			return squares[1][1];
 		}
@@ -209,13 +205,11 @@ public class Board {
 
 	public void endGame() {
 		inProgress_ = false;
-		
-		if(isNetworkedGame()){
+
+		if (isNetworkedGame()) {
 			GameServer gs = GameServer.getInstance();
 			gs.sendCmd(sock_, gs.cmdGameOver);
 		}
-		
-		sock_ = null;
 	}
 
 	private void listenOnSocket() {
@@ -234,7 +228,7 @@ public class Board {
 	}
 
 	public void prematureEndGame() {
-		if(isNetworkedGame()){
+		if (isNetworkedGame()) {
 			GameServer gs = GameServer.getInstance();
 			gs.sendCmd(sock_, gs.cmdPlayerExited);
 		}

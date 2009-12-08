@@ -1,8 +1,10 @@
 package com.vuphone.tictactoe;
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -53,6 +55,8 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 	public void paintSurfaceSquareTouched(int x, int y) 
 	{
+		Vibrator v = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
+		v.vibrate(80);
 		gameBoard.setValueInSquare(x, y);
 	}
 
@@ -77,6 +81,7 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	@Override
 	protected void onStop() {
 		super.onStop();
+		Board.getInstance().setOpponentSocket(null);
 		Board.getInstance().prematureEndGame();
 	}
 

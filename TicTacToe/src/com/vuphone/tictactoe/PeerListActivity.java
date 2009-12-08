@@ -4,7 +4,7 @@
 package com.vuphone.tictactoe;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Properties;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -20,18 +20,22 @@ import android.widget.ListView;
 public class PeerListActivity extends ListActivity {
 
 	private ArrayList<String> peers;
-
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Collection<String> peerList = GameServer.getInstance().helloList
-				.values();
+		ArrayList<Properties> peerList = GameServer.getInstance().helloList;
 
 		if (peerList.size() == 0) {
 			peers = new ArrayList<String>();
 			peers.add("No opponents found!");
 		} else {
-			peers = new ArrayList<String>(peerList);
+			synchronized (peerList){
+				peers = new ArrayList<String>();
+				for (Properties p : peerList){
+					peers.add(p.getProperty("name"));
+				}
+			}
 		}
 
 		setListAdapter(new ArrayAdapter<String>(this,
@@ -43,7 +47,10 @@ public class PeerListActivity extends ListActivity {
 		super.onListItemClick(l, v, position, id);
 
 		Intent i = new Intent();
-		i.putExtra("ip", "ip-addy");
+		ArrayList<Properties> list = GameServer.getInstance().helloList;
+		
+		if (position < list.size())
+			i.putExtra("ip", list.get(position).getProperty("ip"));
 
 		setResult(RESULT_OK, i);
 		finish();

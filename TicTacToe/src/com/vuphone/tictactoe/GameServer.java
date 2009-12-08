@@ -8,6 +8,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -50,8 +52,8 @@ public class GameServer extends Thread {
 	private final String cmdHello = "<cmd><hello/>";
 
 	private String nameOfPlayer = "TicTacToe Player";
-	public ConcurrentHashMap<String, String> helloList = new ConcurrentHashMap<String, String>();
-
+	public ArrayList<Properties> helloList = new ArrayList<Properties>();
+	
 	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);
 
 	public GameServer() {
@@ -68,7 +70,7 @@ public class GameServer extends Thread {
 			return;
 		} catch (Exception e) {
 		}
-
+		
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
 
 		updateIPAddress();
@@ -247,11 +249,13 @@ public class GameServer extends Thread {
 
 		if (cmd != null && cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
 			String name = cmd.replaceAll("<[^<>]+>", "");
-
-			if (!helloList.containsKey(ip))
-				helloList.put(ip, name);
-
+			
 			synchronized (helloList) {
+				Properties p = new Properties();
+				p.put("ip", ip);
+				p.put("name", name);
+				helloList.add(p);
+
 				helloList.notifyAll();
 			}
 
