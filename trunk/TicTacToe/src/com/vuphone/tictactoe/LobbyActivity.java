@@ -6,16 +6,16 @@ import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.MotionEvent;
+import android.os.Vibrator;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -23,8 +23,7 @@ import android.widget.Toast;
 
 import com.vuphone.tictactoe.model.Board;
 
-public class LobbyActivity extends Activity implements OnClickListener,
-		OnTouchListener {
+public class LobbyActivity extends Activity implements OnClickListener {
 
 	private static Context context_ = null;
 	private static LobbyActivity instance_ = null;
@@ -43,10 +42,11 @@ public class LobbyActivity extends Activity implements OnClickListener,
 
 		context_ = getBaseContext();
 		instance_ = this;
-
-		btnStart_ = (Button) findViewById(R.id.btnSendRequest);
+		btnStart_ = ((Button) findViewById(R.id.btnSendRequest));
+		
 		btnStart_.setOnClickListener(this);
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
+		((Button) findViewById(R.id.btnPeers)).setOnClickListener(this);
 
 		// Display the IP address
 		setViewIPAddress(GameServer.getInstance().getMyIP());
@@ -59,43 +59,49 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	 */
 	public void onClick(View v) {
 
+		Vibrator vibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
+		vibrator.vibrate(80);
+
 		if (v.getId() == R.id.btnSinglePlayer) {
 			Board.getInstance().startNewGame(1);
 			Intent i = new Intent(this, GameActivity.class);
 			startActivity(i);
 			return;
-		}
+		} else if (v.getId() == R.id.btnPeers) {
+			if (v.getId() == R.id.btnPeers) {
+				Intent i = new Intent(this, PeerListActivity.class);
+				startActivityForResult(i, 69);
+			}
+			return;
 
-		btnStart_.setClickable(false);
+		} else {
+			btnStart_.setClickable(false);
 
-		TextView ip = (TextView) findViewById(R.id.server);
+			TextView ip = (TextView) findViewById(R.id.server);
 
-		try {
-			String addy = ip.getText().toString();
+			try {
+				String addy = ip.getText().toString();
 
-			// Check for a valid IP
-			Pattern regex = Pattern
-					.compile(
-							"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-							Pattern.MULTILINE);
-			Matcher regexMatcher = regex.matcher(addy);
+				// Check for a valid IP
+				Pattern regex = Pattern.compile(
+						"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+						Pattern.MULTILINE);
+				Matcher regexMatcher = regex.matcher(addy);
 
-			if (regexMatcher.matches()) {
-				GameServer.getInstance().sendGameRequest(addy);
-				return;
+				if (regexMatcher.matches()) {
+					GameServer.getInstance().sendGameRequest(addy);
+					return;
+				}
+
+			} catch (Exception e) {
 			}
 
-		} catch (Exception e) {
+			echo("Invalid opponent information!");
+			btnStart_.setClickable(true);
 		}
-
-		echo("Invalid opponent information!");
-		btnStart_.setClickable(true);
-
 	}
 
 	public void initializePeerList() {
-		Button peers = (Button) findViewById(R.id.btnPeers);
-		peers.setOnTouchListener(this);
 
 		// Spawn a thread for faster startup
 		new Thread(new Runnable() {
@@ -125,9 +131,9 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	}
 
 	public synchronized void setViewPeerCount(int peers) {
-		if(peers == 0)
+		if (peers == 0)
 			return;
-		
+
 		Button t = (Button) findViewById(R.id.btnPeers);
 		t.setText("Finding peers (" + peers + ")");
 	}
@@ -175,34 +181,30 @@ public class LobbyActivity extends Activity implements OnClickListener,
 		String ip = sock.getRemoteSocketAddress().toString();
 		ip = ip.substring(0, ip.indexOf('/'));
 
-		String msg = "You've got an incoming request from " + ip
-				+ ". Want to play?";
+		String msg = "You've got an incoming request from " + ip + ". Want to play?";
 
 		final Intent act = new Intent(this, GameActivity.class);
-		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
-				.create();
+		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
 		dialog.setMessage(msg);
-		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes",
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int i) {
-						dialog.cancel();
-						GameServer.getInstance().responseToRequest(sock, true);
-						Board.getInstance().setOpponentSocket(sock);
-						Board.getInstance().startNewGame(2); // receiver is
-						// always 2
+		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int i) {
+				dialog.cancel();
+				GameServer.getInstance().responseToRequest(sock, true);
+				Board.getInstance().setOpponentSocket(sock);
+				Board.getInstance().startNewGame(2); // receiver is
+				// always 2
 
-						startActivity(act);
-						return;
-					}
-				});
+				startActivity(act);
+				return;
+			}
+		});
 
-		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int i) {
-						dialog.cancel();
-						GameServer.getInstance().responseToRequest(sock, false);
-					}
-				});
+		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int i) {
+				dialog.cancel();
+				GameServer.getInstance().responseToRequest(sock, false);
+			}
+		});
 
 		dialog.show();
 	}
@@ -216,9 +218,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 			new Thread(new Runnable() {
 				public void run() {
 					int count = 0;
-					while (!gs.peerThreadsComplete
-							.equals(GameServer.PEER_THREAD_COUNT * 3)
-							&& ++count < 1000) {
+					while (!gs.peerThreadsComplete.equals(GameServer.PEER_THREAD_COUNT * 3) && ++count < 1000) {
 
 						try {
 							synchronized (gs.helloList) {
@@ -277,16 +277,4 @@ public class LobbyActivity extends Activity implements OnClickListener,
 		setViewIPAddress(GameServer.getInstance().updateIPAddress());
 	}
 
-	/**
-	 * Called when the peer status text is touched
-	 */
-	public boolean onTouch(View v, MotionEvent event) {
-		super.onTouchEvent(event);
-
-		if (v.getId() == R.id.btnPeers) {
-			Intent i = new Intent(this, PeerListActivity.class);
-			startActivityForResult(i, 69);
-		}
-		return true;
-	}
 }
