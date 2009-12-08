@@ -103,6 +103,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 		new Thread(new Runnable() {
 			public void run() {
 				GameServer.getInstance().pingTheLan();
+				updatePeerCount();
 			}
 		}).start();
 	}
@@ -126,8 +127,11 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	}
 
 	public synchronized void setViewPeerCount(int peers) {
-		((TextView) findViewById(R.id.lblPeers)).setText("Found " + peers
-				+ " other players!");
+		if(peers == 0)
+			return;
+		
+		TextView t = (TextView) findViewById(R.id.lblPeers);
+		t.setText("Found " + peers + " other players!");
 	}
 
 	public void deliveredRequestCB(boolean success) {
@@ -208,15 +212,15 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	public void updatePeerCount() {
 		final GameServer gs = GameServer.getInstance();
 
-		if (gs.peerThreadsComplete.equals(GameServer.PEER_THREAD_COUNT))
+		if (gs.peerThreadsComplete.get() >= GameServer.PEER_THREAD_COUNT * 3)
 			setViewPeerCount(gs.helloList.size());
 		else {
 			new Thread(new Runnable() {
 				public void run() {
 					int count = 0;
 					while (!gs.peerThreadsComplete
-							.equals(GameServer.PEER_THREAD_COUNT)
-							&& ++count < 20) {
+							.equals(GameServer.PEER_THREAD_COUNT * 3)
+							&& ++count < 1000) {
 
 						try {
 							synchronized (gs.helloList) {
@@ -225,7 +229,11 @@ public class LobbyActivity extends Activity implements OnClickListener,
 						} catch (InterruptedException e) {
 						}
 
-						setViewPeerCount(gs.helloList.size());
+						LobbyActivity.uiThreadCallback.post(new Runnable() {
+							public void run() {
+								setViewPeerCount(gs.helloList.size());
+							}
+						});
 					}
 				}
 			}).start();
