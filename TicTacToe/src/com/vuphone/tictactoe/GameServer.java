@@ -227,6 +227,7 @@ public class GameServer extends Thread {
 	}
 
 	private boolean pingMachine(String ip) {
+		Log.d("Mad",ip);
 		Socket sock = new Socket();
 
 		try {
