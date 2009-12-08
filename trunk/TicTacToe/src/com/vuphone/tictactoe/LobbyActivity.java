@@ -59,9 +59,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	 */
 	public void onClick(View v) {
 
-		String btn = ((Button) v).getText().toString();
-
-		if (btn.equals("Single Player Mode")) {
+		if (v.getId() == R.id.btnSinglePlayer) {
 			Board.getInstance().startNewGame(1);
 			Intent i = new Intent(this, GameActivity.class);
 			startActivity(i);
@@ -96,7 +94,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	}
 
 	public void initializePeerList() {
-		TextView peers = (TextView) findViewById(R.id.lblPeers);
+		Button peers = (Button) findViewById(R.id.btnPeers);
 		peers.setOnTouchListener(this);
 
 		// Spawn a thread for faster startup
@@ -130,8 +128,8 @@ public class LobbyActivity extends Activity implements OnClickListener,
 		if(peers == 0)
 			return;
 		
-		TextView t = (TextView) findViewById(R.id.lblPeers);
-		t.setText("Found " + peers + " other players!");
+		Button t = (Button) findViewById(R.id.btnPeers);
+		t.setText("Finding peers... " + peers);
 	}
 
 	public void deliveredRequestCB(boolean success) {
@@ -260,7 +258,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 
 		// Re-enable the peers onTouch button
 		if (requestCode == 69)
-			((TextView) findViewById(R.id.lblPeers)).setEnabled(true);
+			((Button) findViewById(R.id.btnPeers)).setEnabled(true);
 
 		if (resultCode == RESULT_CANCELED || data == null)
 			return;
@@ -289,7 +287,7 @@ public class LobbyActivity extends Activity implements OnClickListener,
 	public boolean onTouch(View v, MotionEvent event) {
 		super.onTouchEvent(event);
 
-		if (v.getId() == R.id.lblPeers) {
+		if (v.getId() == R.id.btnPeers) {
 			v.setEnabled(false);
 			Intent i = new Intent(this, PeerListActivity.class);
 			startActivityForResult(i, 69);

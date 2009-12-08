@@ -4,23 +4,34 @@
 	android:orientation="vertical" android:layout_width="fill_parent" android:id="@+id/container"
 	android:layout_height="fill_parent" android:background="@drawable/splash">
 
-	<EditText android:layout_height="wrap_content" android:id="@+id/server"
-		android:text="" android:layout_marginLeft="15px" android:layout_marginTop="105px" android:layout_width="252px" android:hint="Opponent's IP Address" android:digits="True"></EditText>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_marginTop="115px"
+	android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
+	
+		<EditText android:layout_height="wrap_content" android:id="@+id/server"
+			android:text="" android:layout_marginLeft="15px" android:layout_width="240px" android:hint="Opponent's IP Address" android:digits="0123456789."></EditText>
+	
+		<Button android:layout_width="wrap_content" android:layout_marginTop="-3px"
+			android:layout_height="wrap_content" android:text="Start"
+			android:id="@+id/btnSendRequest" android:layout_marginLeft="5px"></Button>
+			
+	</LinearLayout>
 
-	<Button android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="Send Request"
-		android:id="@+id/btnSendRequest" android:layout_marginLeft="15px"></Button>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_marginTop="5px"
+	android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
+
+		<Button android:id="@+id/btnSinglePlayer" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="Single Player"
+			android:layout_gravity="left" android:layout_marginLeft="15px"></Button>
+
+		<Button android:id="@+id/btnPeers" android:layout_width="140px"
+			android:layout_height="48px" android:text="Finding peers... "
+			android:textColor="#000000" android:paddingLeft="20px"></Button>
+	
+	</LinearLayout>
 
 	<TextView android:id="@+id/lblMyIP" android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="My IP: Looking up now..."
 		android:textColor="#000000" android:paddingLeft="20px" android:textSize="18px" style="Bold"></TextView>
 		
-	<TextView android:id="@+id/lblPeers" android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="No peers detected"
-		android:textColor="#000000" android:paddingLeft="20px" android:textSize="18px" style="Bold"></TextView>
-
-	<Button android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="Single Player Mode"
-		android:id="@+id/btnSinglePlayer" android:layout_gravity="left" android:layout_marginLeft="127px" android:layout_marginTop="-97px"></Button>
 
 </LinearLayout>
