@@ -209,9 +209,12 @@ public class Board {
 
 	public void endGame() {
 		inProgress_ = false;
-		GameServer gs = GameServer.getInstance();
-
-		gs.sendCmd(sock_, gs.cmdGameOver);
+		
+		if(isNetworkedGame()){
+			GameServer gs = GameServer.getInstance();
+			gs.sendCmd(sock_, gs.cmdGameOver);
+		}
+		
 		sock_ = null;
 	}
 
@@ -231,8 +234,10 @@ public class Board {
 	}
 
 	public void prematureEndGame() {
-		GameServer gs = GameServer.getInstance();
-		gs.sendCmd(sock_, gs.cmdPlayerExited);
+		if(isNetworkedGame()){
+			GameServer gs = GameServer.getInstance();
+			gs.sendCmd(sock_, gs.cmdPlayerExited);
+		}
 		endGame();
 	}
 
