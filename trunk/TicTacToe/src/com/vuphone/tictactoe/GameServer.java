@@ -26,7 +26,7 @@ import com.vuphone.tictactoe.model.Board;
  */
 public class GameServer extends Thread {
 
-	public static final int PEER_THREAD_COUNT = 17;
+	public static final int PEER_THREAD_COUNT = 5;
 
 	private static GameServer instance_ = null;
 
@@ -203,10 +203,10 @@ public class GameServer extends Thread {
 		// 123.123.125.x
 		pingTheSubnet(baseIP + (thirdOctet + 1), myIP);
 
-		// 123.123.125.x
+		// 123.123.126.x
 		pingTheSubnet(baseIP + (thirdOctet + 2), myIP);
 		
-		// 123.123.125.x
+		// 123.123.127.x
 		pingTheSubnet(baseIP + (thirdOctet + 3), myIP);
 	}
 
@@ -223,18 +223,31 @@ public class GameServer extends Thread {
 						if (!node.equals(myIP))
 							pingMachine(node);
 					}
-					peerThreadsComplete.incrementAndGet();
+					pingTheSubnetComplete();
 				}
 			}).start();
 		}
 	}
 
+	private void pingTheSubnetComplete() {
+
+		peerThreadsComplete.incrementAndGet();
+		
+		if (peerThreadsComplete.get() >= PEER_THREAD_COUNT * 4){
+			LobbyActivity.uiThreadCallback.post(new Runnable() {
+				public void run() {
+					LobbyActivity.getInstance().findPlayersFinished();
+				}
+			});
+		}
+	}
+	
 	private boolean pingMachine(String ip) {
 		Log.d("mad", "Pinging: " + ip);
 		Socket sock = new Socket();
 
 		try {
-			sock.connect(new InetSocketAddress(ip, PORT), 800); // 800ms timeout
+			sock.connect(new InetSocketAddress(ip, PORT), 1200); // 1200ms timeout
 		} catch (Exception e) {
 			return false;
 		}
@@ -258,6 +271,12 @@ public class GameServer extends Thread {
 
 				helloList.notifyAll();
 			}
+			
+			LobbyActivity.uiThreadCallback.post(new Runnable() {
+				public void run() {
+					LobbyActivity.getInstance().findPlayersCountUpdated();
+				}
+			});
 
 			Log.d("mad", "Found opponent: " + name);
 			return true;
