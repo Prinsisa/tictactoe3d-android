@@ -185,9 +185,29 @@ public class GameServer extends Thread {
 		if (myIP == null || myIP.charAt(0) == 'N')
 			return;
 
-		final String baseIP = myIP.substring(0, myIP.lastIndexOf(".", myIP
-				.length() - 1));
+		String baseIP = myIP.substring(0, myIP.lastIndexOf(".",
+				myIP.length() - 1));
 
+		int lastDigit = baseIP.charAt(baseIP.length() - 1) - 48;
+		baseIP = baseIP.substring(0, baseIP.length() - 1);
+
+		// 123.123.123.x
+		pingTheSubnet(baseIP + lastDigit, myIP);
+
+		if (lastDigit > 1) {
+			try {
+				Thread.sleep(5000);
+			} catch (Exception e) {
+			}
+			// 123.123.124.x
+			pingTheSubnet(baseIP + (lastDigit + 1), myIP);
+
+			// 123.123.125.x
+			pingTheSubnet(baseIP + (lastDigit - 1), myIP);
+		}
+	}
+
+	private void pingTheSubnet(final String baseIP, final String myIP) {
 		// spawn 17 threads to ping the subnet
 		for (int i = 0; i < PEER_THREAD_COUNT; ++i) {
 			final int start = i * 255 / PEER_THREAD_COUNT;
@@ -208,8 +228,9 @@ public class GameServer extends Thread {
 
 	private boolean pingMachine(String ip) {
 		Socket sock = new Socket();
+
 		try {
-			sock.connect(new InetSocketAddress(ip, PORT), 500); // 500ms timeout
+			sock.connect(new InetSocketAddress(ip, PORT), 800); // 800ms timeout
 		} catch (Exception e) {
 			return false;
 		}
@@ -223,7 +244,7 @@ public class GameServer extends Thread {
 		}
 
 		if (cmd != null && cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
-			String name = cmdHello.replaceAll("<[^<>]+>", "");
+			String name = cmd.replaceAll("<[^<>]+>", "");
 
 			if (!helloList.containsKey(ip))
 				helloList.put(ip, name);
@@ -395,7 +416,7 @@ public class GameServer extends Thread {
 			sock.getOutputStream().write(cmd.getBytes());
 			return true;
 		} catch (Exception e) {
-			Log.d("mad","Error! Connection to opponent lost!");
+			Log.d("mad", "Error! Connection to opponent lost!");
 			return false;
 		}
 	}
