@@ -99,7 +99,12 @@ public class LobbyActivity extends Activity implements OnClickListener,
 		TextView peers = (TextView) findViewById(R.id.lblPeers);
 		peers.setOnTouchListener(this);
 
-		GameServer.getInstance().pingTheLan();
+		// Spawn a thread for faster startup
+		new Thread(new Runnable() {
+			public void run() {
+				GameServer.getInstance().pingTheLan();
+			}
+		}).start();
 	}
 
 	public void onConfigurationChanged(Configuration newConfig) {
