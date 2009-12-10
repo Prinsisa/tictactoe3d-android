@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.vuphone.tictactoe.model.Board;
@@ -183,7 +182,7 @@ public class GameServer extends Thread {
 	public void pingTheLan() {
 		peerThreadsComplete.set(0);
 		STOP_PING_LAN = false;
-		
+
 		// Just scan the 243 machines in the last octect for now
 		final String myIP = getMyIP();
 		if (myIP == null || myIP.charAt(0) == 'N')
@@ -250,7 +249,7 @@ public class GameServer extends Thread {
 
 		try {
 			sock.connect(new InetSocketAddress(ip, PORT), 1200); // 1200ms
-																	// timeout
+			// timeout
 		} catch (Exception e) {
 			return false;
 		}
@@ -289,11 +288,11 @@ public class GameServer extends Thread {
 	}
 
 	public void stopPingTheLan() {
-		
+
 		STOP_PING_LAN = true;
 		LobbyActivity.getInstance().findPlayersFinished();
 	}
-	
+
 	public String updateIPAddress() {
 		// lets find our IP address
 		try {
@@ -466,10 +465,8 @@ public class GameServer extends Thread {
 			int y = v.charAt(2) - 48;
 			board.setValueByOpponent(x, y);
 		} else if (s.equals(cmdPlayerExited)) {
-			if (board.isGameInProgress()) {
-				board.setWinner(board.getMyPlayerID());
-				board.endGame();
-			}
+			board.setWinner(board.getMyPlayerID());
+			board.endGame();
 		}
 	}
 }

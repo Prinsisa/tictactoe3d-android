@@ -31,8 +31,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	private static LobbyActivity instance_ = null;
 	private static Boolean animateBtnFindPlayers_ = false;
 	private static int animateBtnFindPlayersBrightness_ = 0;
-	private static int animateBtnFindPlayersDelta_ = 4;
-	
+	private static int animateBtnFindPlayersDelta_ = 15;
+
 	public static Button btnStart_ = null;
 	public static Button btnFindPlayers_ = null;
 	static final Handler uiThreadCallback = new Handler();
@@ -51,15 +51,15 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		instance_ = this;
 		btnStart_ = ((Button) findViewById(R.id.btnSendRequest));
 		btnFindPlayers_ = ((Button) findViewById(R.id.btnPeers));
-		
+
 		btnStart_.setOnClickListener(this);
 		btnFindPlayers_.setOnClickListener(this);
 		btnFindPlayers_.setText("Find local peers");
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
-		
+
 		// Display the IP address
-		TelephonyManager t = ((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE));
-		if (t != null)
+		TelephonyManager t = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
+		if (t != null && t.getLine1Number() != null)
 			GameServer.nameOfPlayer = t.getLine1Number();
 		else
 			GameServer.nameOfPlayer = "TicTacToe Player";
@@ -72,7 +72,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	 */
 	public void onClick(View v) {
 
-		Vibrator vibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
+		Vibrator vibrator = (Vibrator) getApplication().getSystemService(
+				Service.VIBRATOR_SERVICE);
 		vibrator.vibrate(80);
 
 		if (v.getId() == R.id.btnSinglePlayer) {
@@ -81,14 +82,15 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			startActivity(i);
 			return;
 		} else if (v.getId() == R.id.btnPeers) {
-				if ((GameServer.getInstance().helloList.size() == 0 ) && (animateBtnFindPlayers_ == false)){
-					btnFindPlayers_.setText("Finding peers...");
-					initializePeerList();
-					
-				} else {
-					Intent i = new Intent(this, PeerListActivity.class);
-					startActivityForResult(i, 69);
-				}
+			if ((GameServer.getInstance().helloList.size() == 0)
+					&& (animateBtnFindPlayers_ == false)) {
+				btnFindPlayers_.setText("Finding peers...");
+				initializePeerList();
+
+			} else {
+				Intent i = new Intent(this, PeerListActivity.class);
+				startActivityForResult(i, 69);
+			}
 			return;
 
 		} else {
@@ -100,9 +102,10 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				String addy = ip.getText().toString();
 
 				// Check for a valid IP
-				Pattern regex = Pattern.compile(
-						"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-						Pattern.MULTILINE);
+				Pattern regex = Pattern
+						.compile(
+								"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+								Pattern.MULTILINE);
 				Matcher regexMatcher = regex.matcher(addy);
 
 				if (regexMatcher.matches()) {
@@ -125,31 +128,32 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			public void run() {
 				// pulse the find players button while we're looking
 				animateBtnFindPlayers_ = true;
-				
+
 				try {
-				while (animateBtnFindPlayers_){
-					
-					uiThreadCallback.post(new Runnable() {
-						public void run() {
-							int c = animateBtnFindPlayersBrightness_;
-							btnFindPlayers_.setTextColor(Color.rgb(c,c,c));
-							c = c + animateBtnFindPlayersDelta_;
-							
-							if ((c > 200) || (c < 0))
-								animateBtnFindPlayersDelta_ = -animateBtnFindPlayersDelta_;
-							else
-								animateBtnFindPlayersBrightness_ = c;
-						}
-					});
-					
-					Thread.sleep(40);
-				}
-				} catch (Exception e){
+					while (animateBtnFindPlayers_) {
+
+						uiThreadCallback.post(new Runnable() {
+							public void run() {
+								int c = animateBtnFindPlayersBrightness_;
+								btnFindPlayers_
+										.setTextColor(Color.rgb(c, c, c));
+								c = c + animateBtnFindPlayersDelta_;
+
+								if ((c > 200) || (c < 0))
+									animateBtnFindPlayersDelta_ = -animateBtnFindPlayersDelta_;
+								else
+									animateBtnFindPlayersBrightness_ = c;
+							}
+						});
+
+						Thread.sleep(200);
+					}
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}).start();
-		 
+
 		// start actually pinging the lan
 		GameServer.getInstance().pingTheLan();
 	}
@@ -223,30 +227,34 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		String ip = sock.getRemoteSocketAddress().toString();
 		ip = ip.substring(0, ip.indexOf('/'));
 
-		String msg = "You've got an incoming request from " + ip + ". Want to play?";
+		String msg = "You've got an incoming request from " + ip
+				+ ". Want to play?";
 
 		final Intent act = new Intent(this, GameActivity.class);
-		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
+		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
+				.create();
 		dialog.setMessage(msg);
-		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int i) {
-				dialog.cancel();
-				GameServer.getInstance().responseToRequest(sock, true);
-				Board.getInstance().setOpponentSocket(sock);
-				Board.getInstance().startNewGame(2); // receiver is
-				// always 2
+		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int i) {
+						dialog.cancel();
+						GameServer.getInstance().responseToRequest(sock, true);
+						Board.getInstance().setOpponentSocket(sock);
+						Board.getInstance().startNewGame(2); // receiver is
+						// always 2
 
-				startActivity(act);
-				return;
-			}
-		});
+						startActivity(act);
+						return;
+					}
+				});
 
-		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int i) {
-				dialog.cancel();
-				GameServer.getInstance().responseToRequest(sock, false);
-			}
-		});
+		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int i) {
+						dialog.cancel();
+						GameServer.getInstance().responseToRequest(sock, false);
+					}
+				});
 
 		dialog.show();
 	}
@@ -289,7 +297,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setClickable(true);
 		setViewIPAddress(GameServer.getInstance().updateIPAddress());
 	}
-	
+
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -301,7 +309,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		if (GameServer.getInstance().helloList.size() == 0)
 			btnFindPlayers_.setText("Find local peers");
 		else
-			btnFindPlayers_.setText(GameServer.getInstance().helloList.size() + " peers");
+			btnFindPlayers_.setText(GameServer.getInstance().helloList.size()
+					+ " peers");
 		btnFindPlayers_.setTextColor(Color.BLACK);
 		animateBtnFindPlayers_ = false;
 	}
