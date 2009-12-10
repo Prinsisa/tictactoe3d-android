@@ -58,7 +58,12 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 		
 		// Display the IP address
-		GameServer.nameOfPlayer = ((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
+		TelephonyManager t = ((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE));
+		if (t != null)
+			GameServer.nameOfPlayer = t.getLine1Number();
+		else
+			GameServer.nameOfPlayer = "TicTacToe Player";
+
 		setViewIPAddress(GameServer.getInstance().getMyIP());
 	}
 
