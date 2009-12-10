@@ -126,6 +126,11 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		// Spawn a thread for faster startup
 		new Thread(new Runnable() {
 			public void run() {
+				
+				// start actually pinging the lan
+				GameServer.getInstance().pingTheLan();
+				
+				
 				// pulse the find players button while we're looking
 				animateBtnFindPlayers_ = true;
 
@@ -153,9 +158,6 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				}
 			}
 		}).start();
-
-		// start actually pinging the lan
-		GameServer.getInstance().pingTheLan();
 	}
 
 	public void onConfigurationChanged(Configuration newConfig) {

@@ -99,7 +99,8 @@ public class Board {
 
 		// look for chains of three across
 		for (int y = 0; y < 3; y++) {
-			if ((squares[0][y] == squares[1][y]) && (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)) {
+			if ((squares[0][y] == squares[1][y])
+					&& (squares[0][y] == squares[2][y]) && (squares[0][y] != 0)) {
 				winSquares[0][y] = 1;
 				winSquares[1][y] = 1;
 				winSquares[2][y] = 1;
@@ -108,7 +109,8 @@ public class Board {
 		}
 		// look for chains of three down
 		for (int x = 0; x < 3; x++) {
-			if ((squares[x][0] == squares[x][1]) && (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)) {
+			if ((squares[x][0] == squares[x][1])
+					&& (squares[x][0] == squares[x][2]) && (squares[x][0] != 0)) {
 				winSquares[x][0] = 1;
 				winSquares[x][1] = 1;
 				winSquares[x][2] = 1;
@@ -116,11 +118,13 @@ public class Board {
 			}
 		}
 		// check the diagonals
-		if ((squares[0][0] == squares[1][1]) && (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)) {
+		if ((squares[0][0] == squares[1][1])
+				&& (squares[1][1] == squares[2][2]) && (squares[1][1] != 0)) {
 			winSquares[0][0] = winSquares[1][1] = winSquares[2][2] = 1;
 			return squares[1][1];
 		}
-		if ((squares[2][0] == squares[1][1]) && (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)) {
+		if ((squares[2][0] == squares[1][1])
+				&& (squares[1][1] == squares[0][2]) && (squares[1][1] != 0)) {
 			winSquares[2][0] = winSquares[1][1] = winSquares[0][2] = 1;
 			return squares[1][1];
 		}
@@ -174,7 +178,7 @@ public class Board {
 		PLAYER_ME = playerNum;
 		setWhosTurn(PLAYER_1);
 
-		if(isNetworkedGame())
+		if (isNetworkedGame())
 			listenOnSocket();
 	}
 
@@ -215,7 +219,7 @@ public class Board {
 		}
 	}
 
-	private void listenOnSocket() {		
+	private void listenOnSocket() {
 		final GameServer gameServer = GameServer.getInstance();
 
 		// spawn a thread to listen for network activity
@@ -223,13 +227,14 @@ public class Board {
 			public void run() {
 				while (Board.getInstance().isGameInProgress()) {
 					String cmd = gameServer.readCmdFromSocket(sock_, 5);
-					if (cmd != null){
+					if (!sock_.isConnected()
+							|| (cmd != null && cmd.equals("-1"))) {
+						Log.d("mad", "Socket connection was lost mid-game!");
+						gameServer.parseInGameCmd(gameServer.cmdPlayerExited);
+					} else if (cmd != null) {
 						gameServer.parseInGameCmd(cmd);
 					}
-					else if(!sock_.isConnected()){
-						Log.d("mad","Socket connection was lost mid-game!");
-						gameServer.parseInGameCmd(gameServer.cmdPlayerExited);
-					}
+
 				}
 			}
 		}).start();
