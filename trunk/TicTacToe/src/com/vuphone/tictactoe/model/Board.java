@@ -227,7 +227,7 @@ public class Board {
 			public void run() {
 				while (Board.getInstance().isGameInProgress()) {
 					String cmd = gameServer.readCmdFromSocket(sock_, 5);
-					if (!sock_.isConnected()
+					if ((sock_ == null) || !sock_.isConnected()
 							|| (cmd != null && cmd.equals("-1"))) {
 						Log.d("mad", "Socket connection was lost mid-game!");
 						gameServer.parseInGameCmd(gameServer.cmdPlayerExited);
