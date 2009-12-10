@@ -369,7 +369,7 @@ public class GameServer extends Thread {
 			in = sock.getInputStream();
 		} catch (IOException e1) {
 			e1.printStackTrace();
-			return null;
+			return "-1";
 		}
 
 		StringBuilder xml = new StringBuilder();
