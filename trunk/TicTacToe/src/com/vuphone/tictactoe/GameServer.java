@@ -26,7 +26,7 @@ import com.vuphone.tictactoe.model.Board;
  */
 public class GameServer extends Thread {
 
-	public static final int PEER_THREAD_COUNT = 5;
+	public static final int PEER_THREAD_COUNT = 17;
 
 	private static GameServer instance_ = null;
 
@@ -35,6 +35,7 @@ public class GameServer extends Thread {
 	public static final int RESPONSE_ACCEPT = 1;
 	public static final int RESPONSE_GAME_IN_PROGRESS = 4;
 
+	private boolean STOP_PING_LAN = false;
 	private boolean SHUTDOWN = false;
 	private ServerSocket s_ = null;
 
@@ -181,7 +182,8 @@ public class GameServer extends Thread {
 
 	public void pingTheLan() {
 		peerThreadsComplete.set(0);
-
+		STOP_PING_LAN = false;
+		
 		// Just scan the 243 machines in the last octect for now
 		final String myIP = getMyIP();
 		if (myIP == null || myIP.charAt(0) == 'N')
@@ -219,6 +221,8 @@ public class GameServer extends Thread {
 			new Thread(new Runnable() {
 				public void run() {
 					for (int j = start; j < end; ++j) {
+						if (STOP_PING_LAN == true)
+							break;
 						String node = baseIP + "." + j;
 						if (!node.equals(myIP))
 							pingMachine(node);
@@ -285,6 +289,12 @@ public class GameServer extends Thread {
 		return false;
 	}
 
+	public void stopPingTheLan() {
+		
+		STOP_PING_LAN = true;
+		LobbyActivity.getInstance().findPlayersFinished();
+	}
+	
 	public String updateIPAddress() {
 		// lets find our IP address
 		try {
