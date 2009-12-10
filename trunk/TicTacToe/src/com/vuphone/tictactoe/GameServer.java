@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,7 +53,7 @@ public class GameServer extends Thread {
 
 	private String nameOfPlayer = "TicTacToe Player";
 	public ArrayList<Properties> helloList = new ArrayList<Properties>();
-	
+
 	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);
 
 	public GameServer() {
@@ -71,7 +70,7 @@ public class GameServer extends Thread {
 			return;
 		} catch (Exception e) {
 		}
-		
+
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
 
 		updateIPAddress();
@@ -189,16 +188,14 @@ public class GameServer extends Thread {
 		if (myIP == null || myIP.charAt(0) == 'N')
 			return;
 
-		
-
 		String digits[] = myIP.split("\\.");
 		String baseIP = digits[0] + "." + digits[1] + ".";
-		
+
 		int thirdOctet = Integer.parseInt(digits[2]);
 
 		thirdOctet = (int) Math.floor(thirdOctet / 4.0) * 4;
-		Log.d("mad","Last digit = " + thirdOctet);
-		
+		Log.d("mad", "Last digit = " + thirdOctet);
+
 		// 123.123.124.x
 		pingTheSubnet(baseIP + (thirdOctet + 0), myIP);
 
@@ -207,7 +204,7 @@ public class GameServer extends Thread {
 
 		// 123.123.126.x
 		pingTheSubnet(baseIP + (thirdOctet + 2), myIP);
-		
+
 		// 123.123.127.x
 		pingTheSubnet(baseIP + (thirdOctet + 3), myIP);
 	}
@@ -236,8 +233,8 @@ public class GameServer extends Thread {
 	private void pingTheSubnetComplete() {
 
 		peerThreadsComplete.incrementAndGet();
-		
-		if (peerThreadsComplete.get() >= PEER_THREAD_COUNT * 4){
+
+		if (peerThreadsComplete.get() >= PEER_THREAD_COUNT * 4) {
 			LobbyActivity.uiThreadCallback.post(new Runnable() {
 				public void run() {
 					LobbyActivity.getInstance().findPlayersFinished();
@@ -245,13 +242,14 @@ public class GameServer extends Thread {
 			});
 		}
 	}
-	
+
 	private boolean pingMachine(String ip) {
 		Log.d("mad", "Pinging: " + ip);
 		Socket sock = new Socket();
 
 		try {
-			sock.connect(new InetSocketAddress(ip, PORT), 1200); // 1200ms timeout
+			sock.connect(new InetSocketAddress(ip, PORT), 1200); // 1200ms
+																	// timeout
 		} catch (Exception e) {
 			return false;
 		}
@@ -266,7 +264,7 @@ public class GameServer extends Thread {
 
 		if (cmd != null && cmd.substring(0, cmdHello.length()).equals(cmdHello)) {
 			String name = cmd.replaceAll("<[^<>]+>", "");
-			
+
 			synchronized (helloList) {
 				Properties p = new Properties();
 				p.put("ip", ip);
@@ -275,7 +273,7 @@ public class GameServer extends Thread {
 
 				helloList.notifyAll();
 			}
-			
+
 			LobbyActivity.uiThreadCallback.post(new Runnable() {
 				public void run() {
 					LobbyActivity.getInstance().findPlayersCountUpdated();

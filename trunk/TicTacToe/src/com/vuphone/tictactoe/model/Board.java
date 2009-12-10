@@ -2,6 +2,8 @@ package com.vuphone.tictactoe.model;
 
 import java.net.Socket;
 
+import android.util.Log;
+
 import com.vuphone.tictactoe.BoardGLView;
 import com.vuphone.tictactoe.GameServer;
 
@@ -220,8 +222,13 @@ public class Board {
 			public void run() {
 				while (Board.getInstance().isGameInProgress()) {
 					String cmd = gameServer.readCmdFromSocket(sock_, 5);
-					if (cmd != null)
+					if (cmd != null){
 						gameServer.parseInGameCmd(cmd);
+					}
+					else if(!sock_.isConnected()){
+						Log.d("mad","Socket connection was lost mid-game!");
+						gameServer.parseInGameCmd(gameServer.cmdPlayerExited);
+					}
 				}
 			}
 		}).start();
