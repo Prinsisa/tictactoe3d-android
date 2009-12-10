@@ -174,7 +174,8 @@ public class Board {
 		PLAYER_ME = playerNum;
 		setWhosTurn(PLAYER_1);
 
-		listenOnSocket();
+		if(isNetworkedGame())
+			listenOnSocket();
 	}
 
 	private void clearBoard() {
@@ -214,7 +215,7 @@ public class Board {
 		}
 	}
 
-	private void listenOnSocket() {
+	private void listenOnSocket() {		
 		final GameServer gameServer = GameServer.getInstance();
 
 		// spawn a thread to listen for network activity
