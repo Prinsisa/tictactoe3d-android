@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.vuphone.tictactoe.model.Board;
@@ -51,7 +52,7 @@ public class GameServer extends Thread {
 	private final String cmdPing = "<cmd>PING</cmd>";
 	private final String cmdHello = "<cmd><hello/>";
 
-	private String nameOfPlayer = "TicTacToe Player";
+	public static String nameOfPlayer;
 	public ArrayList<Properties> helloList = new ArrayList<Properties>();
 
 	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);

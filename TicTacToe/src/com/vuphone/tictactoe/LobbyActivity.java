@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.telephony.TelephonyManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -57,6 +58,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 		
 		// Display the IP address
+		GameServer.nameOfPlayer = ((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
 		setViewIPAddress(GameServer.getInstance().getMyIP());
 	}
 
