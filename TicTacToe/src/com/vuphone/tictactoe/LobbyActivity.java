@@ -118,6 +118,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			public void run() {
 				// pulse the find players button while we're looking
 				animateBtnFindPlayers_ = true;
+				
 				try {
 				while (animateBtnFindPlayers_){
 					
@@ -139,11 +140,11 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				} catch (Exception e){
 					e.printStackTrace();
 				}
-				
-				// start actually pinging the lan
-				GameServer.getInstance().pingTheLan();
 			}
 		}).start();
+		 
+		// start actually pinging the lan
+		GameServer.getInstance().pingTheLan();
 	}
 
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -281,9 +282,20 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setClickable(true);
 		setViewIPAddress(GameServer.getInstance().updateIPAddress());
 	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		GameServer.getInstance().stopPingTheLan();
+
+	}
 
 	public void findPlayersFinished() {
-		btnFindPlayers_.setText("Find local peers");
+		if (GameServer.getInstance().helloList.size() == 0)
+			btnFindPlayers_.setText("Find local peers");
+		else
+			btnFindPlayers_.setText(GameServer.getInstance().helloList.size() + " peers");
+		btnFindPlayers_.setTextColor(Color.BLACK);
 		animateBtnFindPlayers_ = false;
 	}
 
