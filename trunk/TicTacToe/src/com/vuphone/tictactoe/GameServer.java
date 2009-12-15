@@ -182,7 +182,15 @@ public class GameServer extends Thread {
 		}).start();
 	}
 
-	public void pingTheLan() {
+	public void findPeers(){
+		new Thread(new Runnable() {
+			public void run() {
+				pingTheLan();
+			}
+		}).start();
+	}
+	
+	private void pingTheLan() {
 		peerThreadsComplete.set(0);
 		STOP_PING_LAN = false;
 

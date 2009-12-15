@@ -126,6 +126,12 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public void updatePeerList() {
+		if (!GameServer.getInstance().isInternetEnabled()) {
+			// todo
+			// prompt to enable Internet
+			echo("Can't search with no internet!");
+			return;
+		}
 
 		btnFindPlayers_.setText("Finding peers...");
 
@@ -134,7 +140,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			public void run() {
 
 				// start actually pinging the lan
-				GameServer.getInstance().pingTheLan();
+				GameServer.getInstance().findPeers();
 
 				// pulse the find players button while we're looking
 				animateBtnFindPlayers_ = true;
@@ -230,8 +236,6 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 	}
 
-
-	
 	public void incomingGameRequestCB(final Socket sock) {
 		String ip = sock.getRemoteSocketAddress().toString();
 		ip = ip.substring(0, ip.indexOf('/'));
@@ -384,10 +388,10 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		setViewPeerCount(gs.helloList.size());
 	}
 
-	public void updateIP(){
-		if(!GameServer.getInstance().isInternetEnabled())
+	public void updateIP() {
+		if (!GameServer.getInstance().isInternetEnabled())
 			setViewIPAddress("Checking your connection...");
-			
+
 		new Thread(new Runnable() {
 			public void run() {
 				final String ip = GameServer.getInstance().updateIPAddress();
