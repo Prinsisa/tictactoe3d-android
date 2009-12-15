@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -20,6 +19,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -36,8 +37,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	private static Context context_ = null;
 	private static LobbyActivity instance_ = null;
 	private static Boolean animateBtnFindPlayers_ = false;
-	private static int animateBtnFindPlayersBrightness_ = 0;
-	private static int animateBtnFindPlayersDelta_ = 15;
+	private static final int animateBtnFindPlayersDelay = 2000;
 
 	public static Button btnStart_ = null;
 	public static Button btnFindPlayers_ = null;
@@ -90,9 +90,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		} else if (v.getId() == R.id.btnPeers) {
 			if ((GameServer.getInstance().helloList.size() == 0)
 					&& (animateBtnFindPlayers_ == false)) {
-				btnFindPlayers_.setText("Finding peers...");
-				initializePeerList();
-
+				updatePeerList();
 			} else {
 				Intent i = new Intent(this, PeerListActivity.class);
 				startActivityForResult(i, 69);
@@ -127,7 +125,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		}
 	}
 
-	public void initializePeerList() {
+	public void updatePeerList() {
+
+		btnFindPlayers_.setText("Finding peers...");
 
 		// Spawn a thread for faster startup
 		new Thread(new Runnable() {
@@ -140,24 +140,24 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				animateBtnFindPlayers_ = true;
 
 				try {
+					float alphaStart = .90f;
+					float alphaEnd = 0.2f;
+
 					while (animateBtnFindPlayers_) {
+						btnFindPlayers_.clearAnimation();
 
-						uiThreadCallback.post(new Runnable() {
-							public void run() {
-								int c = animateBtnFindPlayersBrightness_;
-								btnFindPlayers_
-										.setTextColor(Color.rgb(c, c, c));
-								c = c + animateBtnFindPlayersDelta_;
+						Animation animation = new AlphaAnimation(alphaStart,
+								alphaEnd);
+						animation.setDuration(animateBtnFindPlayersDelay);
+						btnFindPlayers_.setAnimation(animation);
+						Thread.sleep(animateBtnFindPlayersDelay);
 
-								if ((c > 200) || (c < 0))
-									animateBtnFindPlayersDelta_ = -animateBtnFindPlayersDelta_;
-								else
-									animateBtnFindPlayersBrightness_ = c;
-							}
-						});
-
-						Thread.sleep(200);
+						float t = alphaStart;
+						alphaStart = alphaEnd;
+						alphaEnd = t;
 					}
+
+					btnFindPlayers_.clearAnimation();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -245,6 +245,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int i) {
 						dialog.cancel();
+
+						// todo
+						// confirm that the request hasn't expired
 						GameServer.getInstance().responseToRequest(sock, true);
 						Board.getInstance().setOpponentSocket(sock);
 						Board.getInstance().startNewGame(2); // receiver is
@@ -274,7 +277,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public static void echo(String msg) {
-		Toast.makeText(context_, msg, Toast.LENGTH_SHORT).show();
+		Toast.makeText(context_, msg, Toast.LENGTH_LONG).show();
 	}
 
 	/**
@@ -329,7 +332,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				android.R.drawable.ic_menu_camera);
 
 		menu.add(Menu.NONE, MENU_ABOUT, i++, "About").setIcon(
-				android.R.drawable.ic_menu_manage);
+				android.R.drawable.ic_menu_info_details);
 
 		return true;
 	}
@@ -352,7 +355,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			break;
 
 		case (MENU_SCAN):
-			echo("Scan");
+			updatePeerList();
 			break;
 
 		case (MENU_SETTINGS):
@@ -364,12 +367,13 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public void findPlayersFinished() {
-		if (GameServer.getInstance().helloList.size() == 0)
+		if (GameServer.getInstance().helloList.size() == 0) {
 			btnFindPlayers_.setText("Find local peers");
-		else
+			echo("No opponents found...");
+		} else
 			btnFindPlayers_.setText(GameServer.getInstance().helloList.size()
 					+ " peers");
-		btnFindPlayers_.setTextColor(Color.BLACK);
+
 		animateBtnFindPlayers_ = false;
 	}
 
