@@ -11,10 +11,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -42,6 +44,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public static Button btnStart_ = null;
 	public static Button btnFindPlayers_ = null;
 	static final Handler uiThreadCallback = new Handler();
+	final GameServer gameServer = GameServer.getInstance(); 
 
 	/**
 	 * Called when the activity is first created and again after the apps goes
@@ -51,6 +54,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d("mad","   super.onCreate()");
+		
 		setContentView(R.layout.main);
 
 		context_ = getBaseContext();
@@ -63,6 +68,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnFindPlayers_.setText("Find local peers");
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 
+		gameServer.wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE); 
+		
 		// Display the IP address
 		TelephonyManager t = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 		if (t != null && t.getLine1Number() != null)
@@ -88,7 +95,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			startActivity(i);
 			return;
 		} else if (v.getId() == R.id.btnPeers) {
-			if ((GameServer.getInstance().helloList.size() == 0)
+			if ((gameServer.helloList.size() == 0)
 					&& (animateBtnFindPlayers_ == false)) {
 				updatePeerList();
 			} else {
@@ -113,7 +120,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				Matcher regexMatcher = regex.matcher(addy);
 
 				if (regexMatcher.matches()) {
-					GameServer.getInstance().sendGameRequest(addy);
+					gameServer.sendGameRequest(addy);
 					return;
 				}
 
@@ -126,7 +133,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public void updatePeerList() {
-		if (!GameServer.getInstance().isInternetEnabled()) {
+		if (!gameServer.isInternetEnabled()) {
 			// todo
 			// prompt to enable Internet
 			echo("Can't search with no internet!");
@@ -140,7 +147,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			public void run() {
 
 				// start actually pinging the lan
-				GameServer.getInstance().findPeers();
+				gameServer.findPeers();
 
 				// pulse the find players button while we're looking
 				animateBtnFindPlayers_ = true;
@@ -254,7 +261,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 						// todo
 						// confirm that the request hasn't expired
-						GameServer.getInstance().responseToRequest(sock, true);
+						gameServer.responseToRequest(sock, true);
 						Board.getInstance().setOpponentSocket(sock);
 						Board.getInstance().startNewGame(2); // receiver is
 						// always 2
@@ -268,7 +275,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int i) {
 						dialog.cancel();
-						GameServer.getInstance().responseToRequest(sock, false);
+						gameServer.responseToRequest(sock, false);
 					}
 				});
 
@@ -309,15 +316,17 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	@Override
 	public void onResume() {
 		super.onResume();
-
+		Log.d("mad","   super.onResume()");
+		
 		btnStart_.setClickable(true);
-		updateIP();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		GameServer.getInstance().stopPingTheLan();
+		Log.d("mad","   super.onPause()");
+		
+		gameServer.stopPingTheLan();
 
 	}
 
@@ -373,28 +382,27 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public void findPlayersFinished() {
-		if (GameServer.getInstance().helloList.size() == 0) {
+		if (gameServer.helloList.size() == 0) {
 			btnFindPlayers_.setText("Find local peers");
 			echo("No opponents found...");
 		} else
-			btnFindPlayers_.setText(GameServer.getInstance().helloList.size()
+			btnFindPlayers_.setText(gameServer.helloList.size()
 					+ " peers");
 
 		animateBtnFindPlayers_ = false;
 	}
 
 	public void findPlayersCountUpdated() {
-		final GameServer gs = GameServer.getInstance();
-		setViewPeerCount(gs.helloList.size());
+		setViewPeerCount(gameServer.helloList.size());
 	}
 
 	public void updateIP() {
-		if (!GameServer.getInstance().isInternetEnabled())
+		if (!gameServer.isInternetEnabled())
 			setViewIPAddress("Checking your connection...");
 
 		new Thread(new Runnable() {
 			public void run() {
-				final String ip = GameServer.getInstance().updateIPAddress();
+				final String ip = gameServer.updateIPAddress();
 				uiThreadCallback.post(new Runnable() {
 					public void run() {
 						setViewIPAddress(ip);

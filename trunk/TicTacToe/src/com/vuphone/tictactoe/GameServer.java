@@ -5,15 +5,21 @@ import java.io.InputStream;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.net.DhcpInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import com.vuphone.tictactoe.model.Board;
@@ -25,7 +31,11 @@ import com.vuphone.tictactoe.model.Board;
  */
 public class GameServer extends Thread {
 
-	public static final int PEER_THREAD_COUNT = 17;
+	private static final int PING_TIMEOUT_MS = 1200;
+
+	private static int SUBNET_COUNT = 4;
+
+	public static final int PEER_THREAD_COUNT = 5;
 
 	private static GameServer instance_ = null;
 
@@ -42,7 +52,7 @@ public class GameServer extends Thread {
 	private int PORT = 1234;
 	private Boolean determining_ip = false;
 	private final Object waitForIPLock = new Object();
-	
+
 	private final String cmdGameRequest = "<cmd>REQUEST-NEW-GAME</cmd>";
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
@@ -58,12 +68,17 @@ public class GameServer extends Thread {
 
 	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);
 
+	public WifiManager wifiManager = null;
+
 	public GameServer() {
 		super("GameServer");
 	}
 
 	@Override
 	public void run() {
+		getMyIP();
+		Log.d("mad", "IP Addr: " + listening_ip_);
+
 		try {
 			s_ = new ServerSocket(PORT);
 			s_.setSoTimeout(2000);
@@ -74,11 +89,6 @@ public class GameServer extends Thread {
 		}
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
-
-		if (listening_ip_ == null)
-			updateIPAddress();
-
-		Log.d("mad", "IP Addr: " + listening_ip_);
 
 		/*
 		 * Accept TCP socket connections
@@ -182,22 +192,23 @@ public class GameServer extends Thread {
 		}).start();
 	}
 
-	public void findPeers(){
+	public void findPeers() {
 		new Thread(new Runnable() {
 			public void run() {
 				pingTheLan();
 			}
 		}).start();
 	}
-	
+
 	private void pingTheLan() {
+		if (!isInternetEnabled())
+			return;
+
 		peerThreadsComplete.set(0);
 		STOP_PING_LAN = false;
 
 		// Just scan the 243 machines in the last octect for now
 		final String myIP = getMyIP();
-		if (myIP == null || myIP.charAt(0) == 'N')
-			return;
 
 		String digits[] = myIP.split("\\.");
 		String baseIP = digits[0] + "." + digits[1] + ".";
@@ -207,6 +218,8 @@ public class GameServer extends Thread {
 		thirdOctet = (int) Math.floor(thirdOctet / 4.0) * 4;
 		Log.d("mad", "Last digit = " + thirdOctet);
 
+		SUBNET_COUNT = 4;
+		
 		// 123.123.124.x
 		pingTheSubnet(baseIP + (thirdOctet + 0), myIP);
 
@@ -241,11 +254,9 @@ public class GameServer extends Thread {
 		}
 	}
 
-	private void pingTheSubnetComplete() {
-
-		peerThreadsComplete.incrementAndGet();
-
-		if (peerThreadsComplete.get() >= PEER_THREAD_COUNT * 4) {
+	private synchronized void pingTheSubnetComplete() {
+		
+		if (peerThreadsComplete.incrementAndGet() >= PEER_THREAD_COUNT * SUBNET_COUNT) {
 			LobbyActivity.uiThreadCallback.post(new Runnable() {
 				public void run() {
 					LobbyActivity.getInstance().findPlayersFinished();
@@ -259,7 +270,7 @@ public class GameServer extends Thread {
 		Socket sock = new Socket();
 
 		try {
-			sock.connect(new InetSocketAddress(ip, PORT), 1200); // 1200ms
+			sock.connect(new InetSocketAddress(ip, PORT), PING_TIMEOUT_MS);
 			// timeout
 		} catch (Exception e) {
 			return false;
@@ -299,7 +310,6 @@ public class GameServer extends Thread {
 	}
 
 	public void stopPingTheLan() {
-
 		STOP_PING_LAN = true;
 		LobbyActivity.getInstance().findPlayersFinished();
 	}
@@ -312,7 +322,6 @@ public class GameServer extends Thread {
 		// lets find our IP address
 		try {
 			Socket socket = new Socket("www.google.com", 80);
-			socket.setSoTimeout(2500);
 			listening_ip_ = socket.getLocalAddress().toString().substring(1);
 			socket.close();
 		} catch (Exception e) {
@@ -331,7 +340,46 @@ public class GameServer extends Thread {
 			waitForIPLock.notifyAll();
 		}
 
+		if (!isInternetEnabled()) {
+
+			if (wifiManager.isWifiEnabled() == true) {
+
+				WifiInfo info = wifiManager.getConnectionInfo();
+				DhcpInfo dhcp = wifiManager.getDhcpInfo();
+				String ip, netmask = "";
+				if (info != null) {
+					int i = info.getIpAddress();
+
+					if (i != 0 && (ip = wifiInt2String(i)) != null) {
+						Log.d("mad", " *Internet is goofy. Rebooting wifi");
+
+						wifiManager.reassociate();
+
+						if (dhcp != null)
+							netmask = wifiInt2String(dhcp.netmask);
+
+						Log.d("mad", " WIFI IP:" + ip + " |Netmask:" + netmask);
+					}
+				}
+			}
+
+		}
+		Log.d("mad", "   Iterator says our IP is: " + getLocalIpAddress());
 		return listening_ip_;
+	}
+
+	private String wifiInt2String(int ip) {
+		String str = null;
+		byte[] byteaddr = new byte[] { (byte) (ip & 0xff),
+				(byte) (ip >> 8 & 0xff), (byte) (ip >> 16 & 0xff),
+				(byte) (ip >> 24 & 0xff) };
+		try {
+			str = InetAddress.getByAddress(byteaddr).getHostAddress();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		return str;
 	}
 
 	private Socket sendRequest(String remoteAddr, int remotePort) {
@@ -469,16 +517,35 @@ public class GameServer extends Thread {
 		return listening_ip_;
 	}
 
-	public boolean isInternetEnabled(){
-		if(listening_ip_ == null)
+	public String getLocalIpAddress() {
+		try {
+			for (Enumeration<NetworkInterface> en = NetworkInterface
+					.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				for (Enumeration<InetAddress> enumIpAddr = intf
+						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = enumIpAddr.nextElement();
+					if (!inetAddress.isLoopbackAddress()) {
+						return inetAddress.getHostAddress().toString();
+					}
+				}
+			}
+		} catch (SocketException ex) {
+			Log.e("mad", ex.toString());
+		}
+		return null;
+	}
+
+	public boolean isInternetEnabled() {
+		if (listening_ip_ == null)
 			return false;
-		
-		if(listening_ip_.charAt(0) == 'N')
+
+		if (listening_ip_.charAt(0) == 'N')
 			return false;
-		
+
 		return true;
 	}
-	
+
 	public boolean sendCmd(Socket sock, String cmd) {
 		try {
 			sock.getOutputStream().write(cmd.getBytes());
