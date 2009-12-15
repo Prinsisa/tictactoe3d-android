@@ -40,7 +40,9 @@ public class GameServer extends Thread {
 
 	private String listening_ip_ = null;
 	private int PORT = 1234;
-
+	private Boolean determining_ip = false;
+	private final Object waitForIPLock = new Object();
+	
 	private final String cmdGameRequest = "<cmd>REQUEST-NEW-GAME</cmd>";
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
@@ -73,7 +75,8 @@ public class GameServer extends Thread {
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
 
-		updateIPAddress();
+		if (listening_ip_ == null)
+			updateIPAddress();
 
 		Log.d("mad", "IP Addr: " + listening_ip_);
 
@@ -293,7 +296,11 @@ public class GameServer extends Thread {
 		LobbyActivity.getInstance().findPlayersFinished();
 	}
 
-	public String updateIPAddress() {
+	public synchronized String updateIPAddress() {
+		synchronized (waitForIPLock) {
+			determining_ip = true;
+		}
+
 		// lets find our IP address
 		try {
 			Socket socket = new Socket("www.google.com", 80);
@@ -310,6 +317,11 @@ public class GameServer extends Thread {
 
 		if (listening_ip_.equals("127.0.0.1"))
 			listening_ip_ = "No internet connection";
+
+		synchronized (waitForIPLock) {
+			determining_ip = false;
+			waitForIPLock.notifyAll();
+		}
 
 		return listening_ip_;
 	}
@@ -433,17 +445,32 @@ public class GameServer extends Thread {
 	}
 
 	public String getMyIP() {
-		int count = 10;
-		while ((--count) > 0 && listening_ip_ == null) {
-			try {
-				Thread.sleep(500);
-			} catch (Exception e) {
+		if (listening_ip_ != null)
+			return listening_ip_;
+
+		try {
+			synchronized (waitForIPLock) {
+				if (!determining_ip)
+					updateIPAddress();
+				else
+					waitForIPLock.wait(2000);
 			}
+		} catch (InterruptedException e) {
 		}
 
 		return listening_ip_;
 	}
 
+	public boolean isInternetEnabled(){
+		if(listening_ip_ == null)
+			return false;
+		
+		if(listening_ip_.charAt(0) == 'N')
+			return false;
+		
+		return true;
+	}
+	
 	public boolean sendCmd(Socket sock, String cmd) {
 		try {
 			sock.getOutputStream().write(cmd.getBytes());

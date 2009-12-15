@@ -70,7 +70,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		else
 			GameServer.nameOfPlayer = "TicTacToe Player";
 
-		setViewIPAddress(GameServer.getInstance().getMyIP());
+		updateIP();
 	}
 
 	/**
@@ -230,6 +230,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 	}
 
+
+	
 	public void incomingGameRequestCB(final Socket sock) {
 		String ip = sock.getRemoteSocketAddress().toString();
 		ip = ip.substring(0, ip.indexOf('/'));
@@ -305,7 +307,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onResume();
 
 		btnStart_.setClickable(true);
-		setViewIPAddress(GameServer.getInstance().updateIPAddress());
+		updateIP();
 	}
 
 	@Override
@@ -382,4 +384,19 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		setViewPeerCount(gs.helloList.size());
 	}
 
+	public void updateIP(){
+		if(!GameServer.getInstance().isInternetEnabled())
+			setViewIPAddress("Checking your connection...");
+			
+		new Thread(new Runnable() {
+			public void run() {
+				final String ip = GameServer.getInstance().updateIPAddress();
+				uiThreadCallback.post(new Runnable() {
+					public void run() {
+						setViewIPAddress(ip);
+					}
+				});
+			}
+		}).start();
+	}
 }
