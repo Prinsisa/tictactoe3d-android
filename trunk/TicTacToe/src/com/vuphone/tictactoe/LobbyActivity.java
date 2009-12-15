@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.telephony.TelephonyManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -27,6 +29,10 @@ import com.vuphone.tictactoe.model.Board;
 
 public class LobbyActivity extends Activity implements OnClickListener {
 
+	private static final int MENU_ABOUT = 4;
+	private static final int MENU_BABES = 3;
+	private static final int MENU_SCAN = 2;
+	private static final int MENU_SETTINGS = 1;
 	private static Context context_ = null;
 	private static LobbyActivity instance_ = null;
 	private static Boolean animateBtnFindPlayers_ = false;
@@ -126,11 +132,10 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		// Spawn a thread for faster startup
 		new Thread(new Runnable() {
 			public void run() {
-				
+
 				// start actually pinging the lan
 				GameServer.getInstance().pingTheLan();
-				
-				
+
 				// pulse the find players button while we're looking
 				animateBtnFindPlayers_ = true;
 
@@ -305,6 +310,57 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onPause();
 		GameServer.getInstance().stopPingTheLan();
 
+	}
+
+	/**
+	 * Sets up the Menu options for this activity
+	 */
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		int i = 0;
+
+		menu.add(Menu.NONE, MENU_SETTINGS, i++, "Settings").setIcon(
+				android.R.drawable.ic_menu_preferences);
+
+		menu.add(Menu.NONE, MENU_SCAN, i++, "Re-scan").setIcon(
+				android.R.drawable.ic_menu_edit);
+
+		menu.add(Menu.NONE, MENU_BABES, i++, "More Babes!").setIcon(
+				android.R.drawable.ic_menu_camera);
+
+		menu.add(Menu.NONE, MENU_ABOUT, i++, "About").setIcon(
+				android.R.drawable.ic_menu_manage);
+
+		return true;
+	}
+
+	/**
+	 * Called when an Menu item is clicked
+	 */
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		super.onMenuItemSelected(featureId, item);
+
+		switch (item.getItemId()) {
+
+		case (MENU_ABOUT):
+			echo("About");
+			break;
+
+		case (MENU_BABES):
+			echo("Babes");
+			break;
+
+		case (MENU_SCAN):
+			echo("Scan");
+			break;
+
+		case (MENU_SETTINGS):
+			echo("Settings");
+			break;
+
+		}
+		return true;
 	}
 
 	public void findPlayersFinished() {
