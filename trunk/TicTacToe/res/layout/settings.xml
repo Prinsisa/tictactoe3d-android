@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+
+	<TextView android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:text="Display Name"
+		android:layout_marginLeft="12px" android:layout_marginTop="10px" />
+
+	<EditText android:text="TicTacToePlayer" android:id="@+id/txtDisplayName"
+		android:layout_height="wrap_content" android:layout_width="wrap_content"
+		android:layout_marginLeft="10px" android:minWidth="275px">
+	</EditText>
+
+	<CheckBox android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/chkboxPlaySounds"
+		android:text=" Play Sounds" android:layout_marginLeft="10px"
+		android:layout_marginTop="10px" android:checked="true">
+	</CheckBox>
+
+
+	<CheckBox android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/chkboxVibrate"
+		android:text=" Vibrate on Touch" android:layout_marginLeft="10px"
+		android:checked="true">
+	</CheckBox>
+
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:orientation="horizontal"
+		android:layout_marginTop="20px">
+
+		<Button android:id="@+id/btnSave" android:text="Save"
+			android:layout_height="wrap_content" android:layout_width="125px"
+			android:layout_marginLeft="10px">
+		</Button>
+
+		<Button android:id="@+id/btnCancel" android:text="Cancel"
+			android:layout_height="wrap_content" android:layout_width="125px" 
+			android:layout_marginLeft="20px">
+		</Button>
+
+	</LinearLayout>
+
+</LinearLayout>
