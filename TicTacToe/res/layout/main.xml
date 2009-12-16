@@ -8,7 +8,7 @@
 	android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
 	
 		<EditText android:layout_height="wrap_content" android:id="@+id/server"
-			android:text="" android:layout_marginLeft="5px" android:layout_width="235px" android:hint="Opponent's IP Address" android:digits="0123456789.">
+			android:text="" android:layout_marginLeft="5px" android:layout_width="235px" android:hint="Opponent's IP Address">
 		</EditText>
 	
 		<Button android:layout_height="wrap_content" android:text="Send Request"
