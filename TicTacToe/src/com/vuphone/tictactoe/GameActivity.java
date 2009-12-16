@@ -60,8 +60,11 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 	public void paintSurfaceSquareTouched(int x, int y) 
 	{
-		Vibrator v = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
-		v.vibrate(80);
+		if (Settings.getInstance().getBoolean(Settings.VIBRATE, true)){
+			Vibrator vibrator = (Vibrator) getApplication().getSystemService(
+					Service.VIBRATOR_SERVICE);
+			vibrator.vibrate(80);
+		}
 		gameBoard.setValueInSquare(x, y);
 	}
 
