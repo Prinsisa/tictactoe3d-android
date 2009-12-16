@@ -1,8 +1,6 @@
 package com.vuphone.tictactoe;
 
 import java.net.Socket;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -31,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vuphone.tictactoe.model.Board;
+import com.vuphone.tictactoe.network.NetworkManager;
 
 public class LobbyActivity extends Activity implements OnClickListener {
 
@@ -52,6 +51,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 	final GameServer gameServer = GameServer.getInstance();
 	final Settings settings_ = Settings.getInstance();
+	final NetworkManager networkManager_ = NetworkManager.getInstance();
 	public AlertDialog activeRequestDialog = null;
 
 	/**
@@ -69,6 +69,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		context_ = getBaseContext();
 		instance_ = this;
 		settings_.loadPreferences(getPreferences(MODE_PRIVATE));
+		networkManager_
+				.setWifiManager((WifiManager) getSystemService(Context.WIFI_SERVICE));
 
 		btnStart_ = ((Button) findViewById(R.id.btnSendRequest));
 		btnFindPlayers_ = ((Button) findViewById(R.id.btnPeers));
@@ -78,13 +80,16 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnFindPlayers_.setText("Find local peers");
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 
-		gameServer.wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-
 		// Display the IP address
 		updateIP();
-		
-		if(settings_.getBoolean(Settings.FIRST_LAUNCH, true))
+
+		if (settings_.getBoolean(Settings.FIRST_LAUNCH, true))
 			initializeForFirstLaunch();
+
+		// Keep the screen on while this activity is showing
+		if (settings_.getBoolean(Settings.KEEP_SCREEN_ON, true))
+			((TextView) findViewById(R.id.btnSendRequest))
+					.setKeepScreenOn(true);
 	}
 
 	/**
@@ -94,12 +99,13 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public void initializeForFirstLaunch() {
 		Log.d("mad", " This is the first launch after installation!");
 		settings_.putBoolean(Settings.FIRST_LAUNCH, false);
-		
+
 		settings_.putBoolean(Settings.PLAY_SOUNDS, true);
 		settings_.putBoolean(Settings.VIBRATE, true);
-		
+		settings_.putBoolean(Settings.KEEP_SCREEN_ON, true);
+
 		// Set the default DisplayName as Phone number
-		String displayName = "TicTacToe Player"; 
+		String displayName = "TicTacToe Player";
 		TelephonyManager t = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 		if (t != null && t.getLine1Number() != null)
 			displayName = t.getLine1Number();
@@ -140,13 +146,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				String addy = ip.getText().toString();
 
 				// Check for a valid IP
-				Pattern regex = Pattern
-						.compile(
-								"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-								Pattern.MULTILINE);
-				Matcher regexMatcher = regex.matcher(addy);
-
-				if (regexMatcher.matches()) {
+				if (NetworkManager.getInstance().isIpValid(addy)) {
 					gameServer.sendGameRequest(addy);
 					return;
 				}
@@ -160,10 +160,44 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public void updatePeerList() {
-		if (!gameServer.isInternetEnabled()) {
-			// todo
-			// prompt to enable Internet
-			echo("Can't search with no internet!");
+		String ip = networkManager_.getIpAddress();
+
+		if (!networkManager_.isWifiEnabled()) {
+			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
+					.create();
+			dialog
+					.setMessage("You must be connected to a wireless network to scan for local players. Want to enable it?");
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int i) {
+							dialog.cancel();
+							networkManager_.setWifiEnabled(true);
+						}
+					});
+
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int i) {
+							dialog.cancel();
+						}
+					});
+
+			dialog.show();
+			return;
+		} else if (!networkManager_.isIpInternal(ip)) {
+			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
+					.create();
+			dialog
+					.setMessage("You must be connected to a wireless network to scan for local players. Please ensure you have signal.");
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int i) {
+							dialog.cancel();
+							networkManager_.setWifiEnabled(true);
+						}
+					});
+
+			dialog.show();
 			return;
 		}
 
@@ -382,7 +416,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 			// Autofill the IP in the IP Box
 			((EditText) findViewById(R.id.server)).setText(ip);
-			
+
 			// Auto-send a request
 			onClick(findViewById(R.id.btnSendRequest));
 		}
@@ -488,9 +522,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			break;
 
 		case (MENU_SETTINGS):
-			Intent i = new Intent(this,SettingsActivity.class);
+			Intent i = new Intent(this, SettingsActivity.class);
 			startActivity(i);
-			
+
 			break;
 
 		}
@@ -512,8 +546,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	}
 
 	public void updateIP() {
-		if (!gameServer.isInternetEnabled())
-			setViewIPAddress("Checking your connection...");
+		setViewIPAddress("Checking your connection...");
 
 		new Thread(new Runnable() {
 			public void run() {
