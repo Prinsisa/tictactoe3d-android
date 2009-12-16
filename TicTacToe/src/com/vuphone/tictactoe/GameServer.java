@@ -67,8 +67,6 @@ public class GameServer extends Thread {
 
 	@Override
 	public void run() {
-		Log.d("mad", "IP Addr: " + listening_ip_);
-
 		try {
 			s_ = new ServerSocket(PORT);
 			s_.setSoTimeout(2000);
@@ -324,6 +322,8 @@ public class GameServer extends Thread {
 
 		if (listening_ip_ == null)
 			listening_ip_ = "No internet connection";
+		else
+			Log.d("mad", "IP Addr: " + listening_ip_);
 		
 		return listening_ip_;
 	}

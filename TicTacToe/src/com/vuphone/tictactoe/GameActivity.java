@@ -42,6 +42,11 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 		
 		// get the OpenGL context from the surface and save it
 		GLManager.getInstance().glContext = paintView.getContext();
+		
+		if(Settings.getInstance().getBoolean(Settings.KEEP_SCREEN_ON, true))
+			paintView.setKeepScreenOn(true);
+		else
+			paintView.setKeepScreenOn(false);
 	}
 
 	public void paintSurfaceGLReady() {

@@ -88,8 +88,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 		// Keep the screen on while this activity is showing
 		if (settings_.getBoolean(Settings.KEEP_SCREEN_ON, true))
-			((TextView) findViewById(R.id.btnSendRequest))
-					.setKeepScreenOn(true);
+			btnStart_.setKeepScreenOn(true);
+		else
+			btnStart_.setKeepScreenOn(false);
 	}
 
 	/**
