@@ -196,6 +196,13 @@ public class Board {
 	}
 
 	public void setOpponentSocket(Socket s) {
+		if(sock_ != null){
+			try {
+				sock_.close();
+			} catch (Exception e) {
+			}
+		}
+		
 		sock_ = s;
 	}
 
