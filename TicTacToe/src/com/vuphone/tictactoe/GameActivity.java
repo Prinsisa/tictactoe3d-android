@@ -88,14 +88,15 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 		super.onPause();
 		paintView.onPause();
 
+		Board.getInstance().setOpponentSocket(null);
+		Board.getInstance().prematureEndGame();
+		
 		super.finish();
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		Board.getInstance().setOpponentSocket(null);
-		Board.getInstance().prematureEndGame();
 	}
 
 }

@@ -485,6 +485,9 @@ public class GameServer extends Thread {
 	}
 
 	public boolean sendCmd(Socket sock, String cmd) {
+		if(cmd.equals(cmdPlayerExited))
+			Log.d("mad","  Just sent a PLAYER-EXITED");
+		
 		try {
 			sock.getOutputStream().write(cmd.getBytes());
 			return true;
