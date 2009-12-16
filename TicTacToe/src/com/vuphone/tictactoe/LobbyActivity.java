@@ -133,7 +133,6 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		} else if (v.getId() == R.id.btnPeers) {
 			if (gameServer.helloList.size() == 0
 					&& animateBtnFindPlayers_ == false) {
-				gameServer.helloList.clear();
 				updatePeerList();
 			} else if (gameServer.helloList.size() != 0) {
 				Intent i = new Intent(this, PeerListActivity.class);
@@ -251,6 +250,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			return;
 		}
 
+		// clear the old list
+		gameServer.helloList.clear();
 		btnFindPlayers_.setText("Finding peers...");
 
 		// Spawn a thread for faster startup
