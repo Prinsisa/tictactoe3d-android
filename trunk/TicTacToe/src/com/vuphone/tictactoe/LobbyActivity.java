@@ -44,7 +44,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public static Button btnStart_ = null;
 	public static Button btnFindPlayers_ = null;
 	static final Handler uiThreadCallback = new Handler();
-	final GameServer gameServer = GameServer.getInstance(); 
+	final GameServer gameServer = GameServer.getInstance();
+	public AlertDialog activeRequestDialog = null;
 
 	/**
 	 * Called when the activity is first created and again after the apps goes
@@ -54,8 +55,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("mad","   super.onCreate()");
-		
+		Log.d("mad", "   super.onCreate()");
+
 		setContentView(R.layout.main);
 
 		context_ = getBaseContext();
@@ -68,8 +69,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnFindPlayers_.setText("Find local peers");
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 
-		gameServer.wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE); 
-		
+		gameServer.wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+
 		// Display the IP address
 		TelephonyManager t = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 		if (t != null && t.getLine1Number() != null)
@@ -178,10 +179,12 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		}).start();
 	}
 
+	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+
 		View l = this.findViewById(R.id.container);
 
-		super.onConfigurationChanged(newConfig);
 		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 			l.setBackgroundResource(R.drawable.splashlandscape);
 		} else {
@@ -204,9 +207,22 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		t.setText("Finding peers (" + peers + ")");
 	}
 
-	public void deliveredRequestCB(boolean success) {
-		if (success) {
-			echo("Delivered request! Awaiting reply...");
+	public void deliveredRequestCB(final Socket sock) {
+		if (sock != null) {
+			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
+					.create();
+			dialog.setMessage("Waiting for opponent to accept...");
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Cancel",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int i) {
+							dialog.cancel();
+							gameServer.cancelRequest(sock);
+							return;
+						}
+					});
+
+			dialog.show();
+			activeRequestDialog = dialog;
 		} else {
 			echo("Unable to connect to the remote player");
 			btnStart_.setClickable(true);
@@ -215,6 +231,11 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 	public void requestResponseCB(int response, Socket sock) {
 		try {
+			if (activeRequestDialog != null) {
+				activeRequestDialog.dismiss();
+				activeRequestDialog = null;
+			}
+
 			if (response == GameServer.RESPONSE_ACCEPT) {
 				echo("Opponent has accepted your challenge! Starting game...");
 
@@ -232,7 +253,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				echo("Opponent is currently in a game. Try again later.");
 
 			} else {
-				echo("Opponent didn't response to your request.");
+				// User canceled the request
 			}
 
 			btnStart_.setClickable(true);
@@ -240,7 +261,6 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public void incomingGameRequestCB(final Socket sock) {
@@ -257,6 +277,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes",
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int i) {
+						activeRequestDialog = null;
 						dialog.cancel();
 
 						// todo
@@ -267,19 +288,44 @@ public class LobbyActivity extends Activity implements OnClickListener {
 						// always 2
 
 						startActivity(act);
-						return;
 					}
 				});
 
 		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int i) {
+						activeRequestDialog = null;
 						dialog.cancel();
 						gameServer.responseToRequest(sock, false);
 					}
 				});
 
 		dialog.show();
+		activeRequestDialog = dialog;
+
+		// monitor the socket to see if the initiator cancels
+		new Thread(new Runnable() {
+			public void run() {
+				String cmd = null;
+				while (cmd == null && activeRequestDialog != null)
+					cmd = gameServer.readCmdFromSocket(sock, 1);
+
+				Log.d("mad", "Got a cmd: " + cmd);
+
+				if (cmd != null && cmd.equals(gameServer.cmdCancelGame)) {
+					uiThreadCallback.post(new Runnable() {
+
+						public void run() {
+							if (activeRequestDialog != null) {
+								activeRequestDialog.dismiss();
+								activeRequestDialog = null;
+							}
+
+						}
+					});
+				}
+			}
+		}).start();
 	}
 
 	public static LobbyActivity getInstance() {
@@ -316,16 +362,16 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.d("mad","   super.onResume()");
-		
+		Log.d("mad", "   super.onResume()");
+
 		btnStart_.setClickable(true);
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("mad","   super.onPause()");
-		
+		Log.d("mad", "   super.onPause()");
+
 		gameServer.stopPingTheLan();
 
 	}
@@ -386,8 +432,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			btnFindPlayers_.setText("Find local peers");
 			echo("No opponents found...");
 		} else
-			btnFindPlayers_.setText(gameServer.helloList.size()
-					+ " peers");
+			btnFindPlayers_.setText(gameServer.helloList.size() + " peers");
 
 		animateBtnFindPlayers_ = false;
 	}
@@ -410,5 +455,29 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				});
 			}
 		}).start();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Log.d("mad", "   super.onDestroy()");
+	}
+
+	@Override
+	public void onRestart() {
+		super.onRestart();
+		Log.d("mad", "   super.onRestart()");
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		Log.d("mad", "   super.onStop()");
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		Log.d("mad", "   super.onStart()");
 	}
 }

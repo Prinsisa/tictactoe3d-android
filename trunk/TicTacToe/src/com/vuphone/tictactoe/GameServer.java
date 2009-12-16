@@ -56,6 +56,7 @@ public class GameServer extends Thread {
 	private final String cmdGameRequest = "<cmd>REQUEST-NEW-GAME</cmd>";
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
+	public final String cmdCancelGame = "<cmd>CANCEL-GAME-REQUEST</cmd>";
 	private final String cmdGameInProgress = "<cmd>GAME-IN-PROGRESS</cmd>";
 	public final String cmdPlayerExited = "<cmd>PLAYER-EXITED-GAME</cmd>";
 	private final String cmdBoardUpdate = "<cmd><boardupdate/>";
@@ -166,8 +167,7 @@ public class GameServer extends Thread {
 				final Socket sock = sendRequest(remoteAddr, PORT);
 				LobbyActivity.uiThreadCallback.post(new Runnable() {
 					public void run() {
-						LobbyActivity.getInstance().deliveredRequestCB(
-								(sock == null) ? false : true);
+						LobbyActivity.getInstance().deliveredRequestCB(sock);
 
 						if (sock == null)
 							return;
@@ -219,7 +219,7 @@ public class GameServer extends Thread {
 		Log.d("mad", "Last digit = " + thirdOctet);
 
 		SUBNET_COUNT = 4;
-		
+
 		// 123.123.124.x
 		pingTheSubnet(baseIP + (thirdOctet + 0), myIP);
 
@@ -255,8 +255,9 @@ public class GameServer extends Thread {
 	}
 
 	private synchronized void pingTheSubnetComplete() {
-		
-		if (peerThreadsComplete.incrementAndGet() >= PEER_THREAD_COUNT * SUBNET_COUNT) {
+
+		if (peerThreadsComplete.incrementAndGet() >= PEER_THREAD_COUNT
+				* SUBNET_COUNT) {
 			LobbyActivity.uiThreadCallback.post(new Runnable() {
 				public void run() {
 					LobbyActivity.getInstance().findPlayersFinished();
@@ -278,7 +279,7 @@ public class GameServer extends Thread {
 
 		sendCmd(sock, cmdPing);
 
-		String cmd = readCmdFromSocket(sock, 1);
+		String cmd = readCmdFromSocket(sock, 2);
 		try {
 			sock.close();
 		} catch (IOException e) {
@@ -332,7 +333,7 @@ public class GameServer extends Thread {
 			}
 		}
 
-		if (listening_ip_.equals("127.0.0.1"))
+		if (listening_ip_ == null || listening_ip_.equals("127.0.0.1"))
 			listening_ip_ = "No internet connection";
 
 		synchronized (waitForIPLock) {
@@ -362,8 +363,8 @@ public class GameServer extends Thread {
 					}
 				}
 			}
-
 		}
+
 		Log.d("mad", "   Iterator says our IP is: " + getLocalIpAddress());
 		return listening_ip_;
 	}
@@ -398,6 +399,14 @@ public class GameServer extends Thread {
 			return null;
 	}
 
+	public void cancelRequest(Socket sock) {
+		try {
+			sendCmd(sock, cmdCancelGame);
+			sock.close();
+		} catch (IOException e) {
+		}
+	}
+
 	public void responseToRequest(Socket sock, boolean iaccept) {
 		try {
 			if (iaccept)
@@ -412,7 +421,9 @@ public class GameServer extends Thread {
 	}
 
 	private int waitOnGameRequest(Socket sock) {
-		String s = readCmdFromSocket(sock, 8);
+		String s = null;
+		while(s == null && !sock.isClosed())
+			s = readCmdFromSocket(sock, 1);
 
 		if (s == null)
 			return RESPONSE_NONE;
