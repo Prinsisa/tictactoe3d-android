@@ -145,6 +145,52 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			try {
 				String addy = ip.getText().toString();
 
+				// Verify internet is working
+				if (!networkManager_.isConnectionWorking()) {
+					if (networkManager_.isWifiEnabled()) {
+
+						AlertDialog dialog = new AlertDialog.Builder(
+								LobbyActivity.this).create();
+						dialog
+								.setMessage("You are not currently connected to the internet");
+						dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int i) {
+										dialog.cancel();
+									}
+								});
+
+						dialog.show();
+
+					} else {
+						AlertDialog dialog = new AlertDialog.Builder(
+								LobbyActivity.this).create();
+						dialog
+								.setMessage("You are not currently connected to the internet. Would you like to enable your wireless connection?");
+						dialog.setButton(DialogInterface.BUTTON_POSITIVE,
+								"Yes", new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int i) {
+										dialog.cancel();
+										networkManager_.setWifiEnabled(true);
+									}
+								});
+
+						dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int i) {
+										dialog.cancel();
+									}
+								});
+
+						dialog.show();
+					}
+
+					return;
+				}
+
 				// Check for a valid IP
 				if (NetworkManager.getInstance().isIpValid(addy)) {
 					gameServer.sendGameRequest(addy);
@@ -435,7 +481,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onPause();
 		Log.d("mad", "   super.onPause()");
 
-		if(animateBtnFindPlayers_)
+		if (animateBtnFindPlayers_)
 			gameServer.stopPingTheLan();
 	}
 
@@ -497,7 +543,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		default:
 			dialog = null;
 		}
-		
+
 		return dialog;
 	}
 
@@ -528,7 +574,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 			break;
 		}
-		
+
 		return true;
 	}
 
