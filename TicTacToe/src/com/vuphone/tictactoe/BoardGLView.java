@@ -50,6 +50,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	
 	private int gameWinningPieceAnimationStep = 0;
 	private float gameOverAnimationFraction = 0;
+	private float gameClosingAnimationFraction = 0;
 	
 	private BoardGLViewDelegate delegate;
 	
@@ -128,8 +129,8 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		gl.glOrthof(-0.33f, 0.33f, -0.5f, 0.5f, -1, 1);
 		
 		if (animateFraction < 1)
-		animateFraction += 0.015;
-		
+			animateFraction += 0.015;
+	
 	    // clear the canvas
 	    float color = Math.min(smoothed * 2, 1);
 	    gl.glColor4f(color,color,color,1);
@@ -227,7 +228,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	    	
 	    	if ((gameWinningPieceAnimationStep >= 70) && (gameOverAnimationFraction < 1))
 	    		gameOverAnimationFraction = (float) Math.min(gameOverAnimationFraction + 0.01 + (1-gameOverAnimationFraction) * 0.10, 1);
-	    		
+    	    			
 	    	if (gameOverAnimationFraction > 0){
 		    	gl.glPushMatrix();
 		    	gl.glTranslatef((1-gameOverAnimationFraction) * 1.0f + 0.10f, -0.31f, 0);
@@ -281,16 +282,33 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 			gl.glEnable(GL11.GL_BLEND);
 			gl.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
 			gl.glColor4f(1, 1, 1, 1-touchAge);
+			float f = 0;
+			if (gameClosingAnimationFraction > 0){
+				f = 1 + (9 * gameClosingAnimationFraction);
+				gl.glScalef(f, f, 1);
+				gameClosingAnimationFraction += 0.04f;
+				if (gameClosingAnimationFraction > 1){
+					float c = 2 - gameClosingAnimationFraction;
+					gl.glBlendFunc(GL11.GL_ONE, GL11.GL_SRC_ALPHA);
+					gl.glColor4f(c,c,c,0);
+				}
+				if (gameClosingAnimationFraction > 2)
+					delegate.paintSurfaceGameClose();
+			}
 			pieceHighlight.draw();
-		    gl.glDisable(GL11.GL_BLEND);
+			if (gameClosingAnimationFraction > 0){
+				gl.glScalef(1/f, 1/f, 1);
+			}
+			gl.glDisable(GL11.GL_BLEND);
 			gl.glTranslatef(-touchLocation.x, -(backingHeight-touchLocation.y), 0);
 			gl.glColor4f(1, 1, 1, 1);
 			
-			touchAge = touchAge + 0.12f;
-
-			if (touchAge >= 1)
-				touchLocation = null;
-			
+			if (gameClosingAnimationFraction == 0){
+				touchAge = touchAge + 0.12f;
+	
+				if (touchAge >= 1)
+					touchLocation = null;
+			}
 		}
 	}
 
@@ -298,6 +316,10 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 	{
 		if (animateFraction < 1)
 			return true;
+
+		if ((board.isGameOver() == true) && (gameOverAnimationFraction >= 1)){
+			gameClosingAnimationFraction = 0.05f;
+		}
 		
 		final MotionEvent e = MotionEvent.obtain(event);
 		if (e.getAction() == MotionEvent.ACTION_DOWN)
