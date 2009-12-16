@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,6 +26,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +46,10 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public static Button btnStart_ = null;
 	public static Button btnFindPlayers_ = null;
 	static final Handler uiThreadCallback = new Handler();
+	
+	private static final int DIALOG_ABOUT = 0;
+	private static final int DIALOG_MOREBABES = 1;
+	 
 	final GameServer gameServer = GameServer.getInstance();
 	public AlertDialog activeRequestDialog = null;
 
@@ -397,8 +403,43 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 		return true;
 	}
-
-	/**
+	protected Dialog onCreateDialog(int id) {
+		Dialog dialog;
+		TextView text;
+		ImageView image;
+		
+	    switch(id) {
+		    case DIALOG_ABOUT:
+				dialog = new Dialog(this);
+			
+				dialog.setContentView(R.layout.about_dialog);
+				dialog.setTitle("About TicTacToe 3D");
+			
+				text = (TextView) dialog.findViewById(R.id.text);
+				text.setText("'TicTacToe 3D - Hot Babe Edition' began as a class project by Adam Albright and Ben Gotow, " +
+						"students in Computer Engineering at Vanderbilt University.");
+				image = (ImageView) dialog.findViewById(R.id.image);
+				image.setImageResource(R.drawable.icon);
+				break;
+			
+		    case DIALOG_MOREBABES:
+		    	dialog = new Dialog(this);
+				
+				dialog.setContentView(R.layout.about_dialog);
+				dialog.setTitle("So you want more babes?");
+			
+				text = (TextView) dialog.findViewById(R.id.text);
+				text.setText("Check out hotbabeapps.com for more Android apps featuring hot babes! We told you we could make " +
+						"these games entertaining...");
+				image = (ImageView) dialog.findViewById(R.id.image);
+				image.setImageResource(R.drawable.icon);
+				break;
+		    default:
+		        dialog = null;
+	    }
+    	return dialog;
+    }
+		/**
 	 * Called when an Menu item is clicked
 	 */
 	@Override
@@ -408,11 +449,11 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		switch (item.getItemId()) {
 
 		case (MENU_ABOUT):
-			echo("About");
+			this.showDialog(DIALOG_ABOUT);
 			break;
 
 		case (MENU_BABES):
-			echo("Babes");
+			this.showDialog(DIALOG_MOREBABES);
 			break;
 
 		case (MENU_SCAN):
