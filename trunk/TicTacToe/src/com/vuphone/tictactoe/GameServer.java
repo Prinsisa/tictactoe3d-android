@@ -3,26 +3,19 @@ package com.vuphone.tictactoe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.BindException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.net.DhcpInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import com.vuphone.tictactoe.model.Board;
+import com.vuphone.tictactoe.network.NetworkManager;
 
 /**
  * 
@@ -68,7 +61,7 @@ public class GameServer extends Thread {
 
 	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);
 
-	public WifiManager wifiManager = null;
+	private NetworkManager networkManager_ = NetworkManager.getInstance();
 
 	public GameServer() {
 		super("GameServer");
@@ -148,7 +141,9 @@ public class GameServer extends Thread {
 	}
 
 	public String buildHelloCmd() {
-		return cmdHello + Settings.getInstance().getString(Settings.DISPLAY_NAME, "") + "</cmd>";
+		return cmdHello
+				+ Settings.getInstance().getString(Settings.DISPLAY_NAME, "")
+				+ "</cmd>";
 	}
 
 	public String getRemoteIP(Socket sock) {
@@ -200,15 +195,17 @@ public class GameServer extends Thread {
 	}
 
 	private void pingTheLan() {
-		if (!isInternetEnabled())
+		if (!networkManager_.isConnectionWorking())
 			return;
 
 		peerThreadsComplete.set(0);
 		STOP_PING_LAN = false;
 
 		// Just scan the 243 machines in the last octect for now
-		final String myIP = getMyIP();
-
+		final String myIP = networkManager_.getIpAddress();
+		if(!networkManager_.isIpInternal(myIP))
+			return;
+		
 		String digits[] = myIP.split("\\.");
 		String baseIP = digits[0] + "." + digits[1] + ".";
 
@@ -318,21 +315,21 @@ public class GameServer extends Thread {
 		synchronized (waitForIPLock) {
 			determining_ip = true;
 		}
+		
+		listening_ip_ = networkManager_.getIpAddressFromTest();
+		
+		if(!networkManager_.isWifiEnabled())
+			Log.d("mad","  Wifi is disabled!");
+		
+		if (listening_ip_ == null && networkManager_.isWifiEnabled() == true) {
+			if (networkManager_.getIpAddressWifi() != null) {
+				Log.d("mad", " *Internet is goofy. Rebooting wifi...");
 
-		// lets find our IP address
-		try {
-			Socket socket = new Socket("www.google.com", 80);
-			listening_ip_ = socket.getLocalAddress().toString().substring(1);
-			socket.close();
-		} catch (Exception e) {
-			try {
-				listening_ip_ = InetAddress.getLocalHost().getHostAddress();
-			} catch (UnknownHostException e1) {
-				listening_ip_ = "No internet connection";
+				networkManager_.reassociateWifi();
 			}
 		}
 
-		if (listening_ip_ == null || listening_ip_.equals("127.0.0.1"))
+		if (listening_ip_ == null)
 			listening_ip_ = "No internet connection";
 
 		synchronized (waitForIPLock) {
@@ -340,46 +337,7 @@ public class GameServer extends Thread {
 			waitForIPLock.notifyAll();
 		}
 
-		if (!isInternetEnabled()) {
-
-			if (wifiManager.isWifiEnabled() == true) {
-
-				WifiInfo info = wifiManager.getConnectionInfo();
-				DhcpInfo dhcp = wifiManager.getDhcpInfo();
-				String ip, netmask = "";
-				if (info != null) {
-					int i = info.getIpAddress();
-
-					if (i != 0 && (ip = wifiInt2String(i)) != null) {
-						Log.d("mad", " *Internet is goofy. Rebooting wifi");
-
-						wifiManager.reassociate();
-
-						if (dhcp != null)
-							netmask = wifiInt2String(dhcp.netmask);
-
-						Log.d("mad", " WIFI IP:" + ip + " |Netmask:" + netmask);
-					}
-				}
-			}
-		}
-
-		Log.d("mad", "   Iterator says our IP is: " + getLocalIpAddress());
 		return listening_ip_;
-	}
-
-	private String wifiInt2String(int ip) {
-		String str = null;
-		byte[] byteaddr = new byte[] { (byte) (ip & 0xff),
-				(byte) (ip >> 8 & 0xff), (byte) (ip >> 16 & 0xff),
-				(byte) (ip >> 24 & 0xff) };
-		try {
-			str = InetAddress.getByAddress(byteaddr).getHostAddress();
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-
-		return str;
 	}
 
 	private Socket sendRequest(String remoteAddr, int remotePort) {
@@ -421,7 +379,7 @@ public class GameServer extends Thread {
 
 	private int waitOnGameRequest(Socket sock) {
 		String s = null;
-		while(s == null && !sock.isClosed())
+		while (s == null && !sock.isClosed())
 			s = readCmdFromSocket(sock, 1);
 
 		if (s == null)
@@ -525,35 +483,6 @@ public class GameServer extends Thread {
 		}
 
 		return listening_ip_;
-	}
-
-	public String getLocalIpAddress() {
-		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface
-					.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf
-						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress()) {
-						return inetAddress.getHostAddress().toString();
-					}
-				}
-			}
-		} catch (SocketException ex) {
-			Log.e("mad", ex.toString());
-		}
-		return null;
-	}
-
-	public boolean isInternetEnabled() {
-		if (listening_ip_ == null)
-			return false;
-
-		if (listening_ip_.charAt(0) == 'N')
-			return false;
-
-		return true;
 	}
 
 	public boolean sendCmd(Socket sock, String cmd) {

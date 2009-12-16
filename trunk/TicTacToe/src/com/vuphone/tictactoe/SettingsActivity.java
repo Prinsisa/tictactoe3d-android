@@ -30,6 +30,7 @@ public class SettingsActivity extends Activity implements OnClickListener {
 		((TextView) findViewById(R.id.txtDisplayName)).setText(prefs_.getString(Settings.DISPLAY_NAME, ""));
 		((CheckBox) findViewById(R.id.chkboxPlaySounds)).setChecked(prefs_.getBoolean(Settings.PLAY_SOUNDS, true));
 		((CheckBox) findViewById(R.id.chkboxVibrate)).setChecked(prefs_.getBoolean(Settings.VIBRATE, true));
+		((CheckBox) findViewById(R.id.chkboxKeepScreenOn)).setChecked(prefs_.getBoolean(Settings.KEEP_SCREEN_ON, true));
 	}
 
 	/**
