@@ -5,7 +5,7 @@
 
 	<TextView android:layout_width="fill_parent"
 		android:layout_height="wrap_content" android:text="Display Name"
-		android:layout_marginLeft="12px" android:layout_marginTop="10px" />
+		android:layout_marginLeft="12px" android:layout_marginTop="3px" />
 
 	<EditText android:text="TicTacToePlayer" android:id="@+id/txtDisplayName"
 		android:layout_height="wrap_content" android:layout_width="wrap_content"
@@ -15,7 +15,7 @@
 	<CheckBox android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/chkboxPlaySounds"
 		android:text=" Play Sounds" android:layout_marginLeft="10px"
-		android:layout_marginTop="10px" android:checked="true">
+		android:layout_marginTop="5px" android:checked="true">
 	</CheckBox>
 
 
@@ -33,7 +33,7 @@
 
 	<LinearLayout android:layout_width="fill_parent"
 		android:layout_height="wrap_content" android:orientation="horizontal"
-		android:layout_marginTop="20px">
+		android:layout_marginTop="10px">
 
 		<Button android:id="@+id/btnSave" android:text="Save"
 			android:layout_height="wrap_content" android:layout_width="125px"
