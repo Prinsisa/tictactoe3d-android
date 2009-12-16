@@ -129,7 +129,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			startActivity(i);
 			return;
 		} else if (v.getId() == R.id.btnPeers) {
-			if (animateBtnFindPlayers_ == false) {
+			if (gameServer.helloList.size() == 0
+					&& animateBtnFindPlayers_ == false) {
+				gameServer.helloList.clear();
 				updatePeerList();
 			} else if (gameServer.helloList.size() != 0) {
 				Intent i = new Intent(this, PeerListActivity.class);
