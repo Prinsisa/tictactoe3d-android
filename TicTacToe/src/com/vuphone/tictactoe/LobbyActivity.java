@@ -128,10 +128,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			startActivity(i);
 			return;
 		} else if (v.getId() == R.id.btnPeers) {
-			if ((gameServer.helloList.size() == 0)
-					&& (animateBtnFindPlayers_ == false)) {
+			if (animateBtnFindPlayers_ == false) {
 				updatePeerList();
-			} else {
+			} else if (gameServer.helloList.size() != 0) {
 				Intent i = new Intent(this, PeerListActivity.class);
 				startActivityForResult(i, 69);
 			}
@@ -435,8 +434,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onPause();
 		Log.d("mad", "   super.onPause()");
 
-		gameServer.stopPingTheLan();
-
+		if(animateBtnFindPlayers_)
+			gameServer.stopPingTheLan();
 	}
 
 	/**
@@ -497,6 +496,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		default:
 			dialog = null;
 		}
+		
 		return dialog;
 	}
 
@@ -526,8 +526,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			startActivity(i);
 
 			break;
-
 		}
+		
 		return true;
 	}
 
