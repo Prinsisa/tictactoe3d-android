@@ -99,7 +99,10 @@ public class GameServer extends Thread {
 					sendCmd(sock, buildHelloCmd());
 					sock.close();
 
-				} else if (Board.getInstance().isGameInProgress()) {
+				}
+				// See if a game is in progress or a request is currently active
+				else if (Board.getInstance().isGameInProgress()
+						|| LobbyActivity.getInstance().activeRequestDialog != null) {
 					sendCmd(sock, cmdGameInProgress);
 					sock.close();
 
@@ -324,7 +327,7 @@ public class GameServer extends Thread {
 			listening_ip_ = "No internet connection";
 		else
 			Log.d("mad", "IP Addr: " + listening_ip_);
-		
+
 		return listening_ip_;
 	}
 
