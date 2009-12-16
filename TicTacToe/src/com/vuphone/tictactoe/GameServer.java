@@ -43,8 +43,6 @@ public class GameServer extends Thread {
 
 	private String listening_ip_ = null;
 	private int PORT = 1234;
-	private Boolean determining_ip = false;
-	private final Object waitForIPLock = new Object();
 
 	private final String cmdGameRequest = "<cmd>REQUEST-NEW-GAME</cmd>";
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
@@ -69,7 +67,6 @@ public class GameServer extends Thread {
 
 	@Override
 	public void run() {
-		getMyIP();
 		Log.d("mad", "IP Addr: " + listening_ip_);
 
 		try {
@@ -203,9 +200,9 @@ public class GameServer extends Thread {
 
 		// Just scan the 243 machines in the last octect for now
 		final String myIP = networkManager_.getIpAddress();
-		if(!networkManager_.isIpInternal(myIP))
+		if (!networkManager_.isIpInternal(myIP))
 			return;
-		
+
 		String digits[] = myIP.split("\\.");
 		String baseIP = digits[0] + "." + digits[1] + ".";
 
@@ -312,15 +309,11 @@ public class GameServer extends Thread {
 	}
 
 	public synchronized String updateIPAddress() {
-		synchronized (waitForIPLock) {
-			determining_ip = true;
-		}
-		
 		listening_ip_ = networkManager_.getIpAddressFromTest();
-		
-		if(!networkManager_.isWifiEnabled())
-			Log.d("mad","  Wifi is disabled!");
-		
+
+		if (!networkManager_.isWifiEnabled())
+			Log.d("mad", "  Wifi is disabled!");
+
 		if (listening_ip_ == null && networkManager_.isWifiEnabled() == true) {
 			if (networkManager_.getIpAddressWifi() != null) {
 				Log.d("mad", " *Internet is goofy. Rebooting wifi...");
@@ -331,12 +324,7 @@ public class GameServer extends Thread {
 
 		if (listening_ip_ == null)
 			listening_ip_ = "No internet connection";
-
-		synchronized (waitForIPLock) {
-			determining_ip = false;
-			waitForIPLock.notifyAll();
-		}
-
+		
 		return listening_ip_;
 	}
 
@@ -466,23 +454,6 @@ public class GameServer extends Thread {
 		}
 
 		return instance_;
-	}
-
-	public String getMyIP() {
-		if (listening_ip_ != null)
-			return listening_ip_;
-
-		try {
-			synchronized (waitForIPLock) {
-				if (!determining_ip)
-					updateIPAddress();
-				else
-					waitForIPLock.wait(2000);
-			}
-		} catch (InterruptedException e) {
-		}
-
-		return listening_ip_;
 	}
 
 	public boolean sendCmd(Socket sock, String cmd) {
