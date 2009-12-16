@@ -38,7 +38,6 @@ public class SettingsActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 
 		if (v.getId() == R.id.btnSave) {
-			// todo make sure this works if text is empty
 			CharSequence displayName = ((TextView) findViewById(R.id.txtDisplayName))
 					.getText();
 			boolean playSounds = ((CheckBox) findViewById(R.id.chkboxPlaySounds))
