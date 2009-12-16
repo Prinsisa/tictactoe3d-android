@@ -119,10 +119,12 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	 */
 	public void onClick(View v) {
 
-		Vibrator vibrator = (Vibrator) getApplication().getSystemService(
-				Service.VIBRATOR_SERVICE);
-		vibrator.vibrate(80);
-
+		if (Settings.getInstance().getBoolean(Settings.VIBRATE, true)){
+			Vibrator vibrator = (Vibrator) getApplication().getSystemService(
+					Service.VIBRATOR_SERVICE);
+			vibrator.vibrate(80);
+		}
+		
 		if (v.getId() == R.id.btnSinglePlayer) {
 			Board.getInstance().startNewGame(1);
 			Intent i = new Intent(this, GameActivity.class);
