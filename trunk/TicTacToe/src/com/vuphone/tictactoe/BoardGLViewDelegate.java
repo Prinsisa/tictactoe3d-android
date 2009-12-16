@@ -8,4 +8,6 @@ public interface BoardGLViewDelegate {
 
 	void paintSurfaceGLReady();
 
+	void paintSurfaceGameClose();
+
 }

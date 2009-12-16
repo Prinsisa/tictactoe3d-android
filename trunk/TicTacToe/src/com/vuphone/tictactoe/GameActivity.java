@@ -65,6 +65,11 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 		gameBoard.setValueInSquare(x, y);
 	}
 
+	public void paintSurfaceGameClose()
+	{
+		super.finish();
+	}
+	
 	@Override
 	protected void onResume() {
 		// Ideally a game should implement onResume() and onPause()
