@@ -208,23 +208,48 @@ public class GameServer extends Thread {
 		String baseIP = digits[0] + "." + digits[1] + ".";
 
 		int thirdOctet = Integer.parseInt(digits[2]);
+		int thirdOctetEven = (int) Math.floor(thirdOctet / 4.0) * 4;
 
-		thirdOctet = (int) Math.floor(thirdOctet / 4.0) * 4;
-		Log.d("mad", "Last digit = " + thirdOctet);
+		String netmask = networkManager_.getSubnetMask();
+		if (netmask == null)
+			return;
 
-		SUBNET_COUNT = 4;
+		Log.d("mad"," Scanning with subnet mask: " + netmask);
+		
+		if (netmask.startsWith("255.255.255")) {
+			// Scans 255 IPs
+			SUBNET_COUNT = 1;
+			pingTheSubnet(baseIP + thirdOctet, myIP);
 
-		// 123.123.124.x
-		pingTheSubnet(baseIP + (thirdOctet + 0), myIP);
+		} else if (netmask.startsWith("255.255.254")) {
+			// Scans 511 IPs
+			SUBNET_COUNT = 2;
 
-		// 123.123.125.x
-		pingTheSubnet(baseIP + (thirdOctet + 1), myIP);
+			// 123.123.124.x
+			pingTheSubnet(baseIP + (thirdOctetEven + 0), myIP);
 
-		// 123.123.126.x
-		pingTheSubnet(baseIP + (thirdOctet + 2), myIP);
+			// 123.123.125.x
+			pingTheSubnet(baseIP + (thirdOctetEven + 1), myIP);
 
-		// 123.123.127.x
-		pingTheSubnet(baseIP + (thirdOctet + 3), myIP);
+		}
+
+		else // if (netmask.startsWith("255.255.252")) {
+		{
+			// Scans 1023 IPs
+			SUBNET_COUNT = 4;
+
+			// 123.123.124.x
+			pingTheSubnet(baseIP + (thirdOctetEven + 0), myIP);
+
+			// 123.123.125.x
+			pingTheSubnet(baseIP + (thirdOctetEven + 1), myIP);
+
+			// 123.123.126.x
+			pingTheSubnet(baseIP + (thirdOctetEven + 2), myIP);
+
+			// 123.123.127.x
+			pingTheSubnet(baseIP + (thirdOctetEven + 3), myIP);
+		}
 	}
 
 	private void pingTheSubnet(final String baseIP, final String myIP) {
