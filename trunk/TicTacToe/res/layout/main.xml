@@ -8,11 +8,11 @@
 	android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
 	
 		<EditText android:layout_height="wrap_content" android:id="@+id/server"
-			android:text="" android:layout_marginLeft="15px" android:layout_width="240px" android:hint="Opponent's IP Address" android:digits="0123456789."></EditText>
+			android:text="" android:layout_marginLeft="5px" android:layout_width="235px" android:hint="Opponent's IP Address" android:digits="0123456789.">
+		</EditText>
 	
-		<Button android:layout_width="wrap_content" android:layout_marginTop="-3px"
-			android:layout_height="wrap_content" android:text="Start"
-			android:id="@+id/btnSendRequest" android:layout_marginLeft="5px"></Button>
+		<Button android:layout_height="wrap_content" android:text="Send Request"
+			android:id="@+id/btnSendRequest" android:layout_marginLeft="5px" android:layout_width="75px" android:layout_marginTop="-10px"></Button>
 			
 	</LinearLayout>
 
@@ -20,18 +20,18 @@
 	android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
 
 		<Button android:id="@+id/btnSinglePlayer" android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:text="Single Player"
-			android:layout_gravity="left" android:layout_marginLeft="15px"></Button>
+			android:layout_height="wrap_content" android:text="Local Game"
+			android:layout_gravity="left" android:layout_marginLeft="5px"></Button>
 
 		<Button android:id="@+id/btnPeers" android:layout_width="140px"
-			android:layout_height="48px" android:text="Finding peers... "
-			android:textColor="#000000" android:paddingLeft="20px"></Button>
+			android:layout_height="48px" android:text="Find local peers"
+			android:textColor="#000000" android:paddingLeft="10px"></Button>
 	
 	</LinearLayout>
 
 	<TextView android:id="@+id/lblMyIP" android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:text="My IP: Looking up now..."
-		android:textColor="#000000" android:paddingLeft="20px" android:textSize="18px" style="Bold"></TextView>
+		android:textColor="#000000" android:paddingLeft="10px" android:textSize="18px" style="Bold"></TextView>
 		
 
 </LinearLayout>
