@@ -64,7 +64,6 @@ public class GameServer extends Thread {
 	private final String cmdPing = "<cmd>PING</cmd>";
 	private final String cmdHello = "<cmd><hello/>";
 
-	public static String nameOfPlayer;
 	public ArrayList<Properties> helloList = new ArrayList<Properties>();
 
 	public AtomicInteger peerThreadsComplete = new AtomicInteger(0);
@@ -149,7 +148,7 @@ public class GameServer extends Thread {
 	}
 
 	public String buildHelloCmd() {
-		return cmdHello + nameOfPlayer + "</cmd>";
+		return cmdHello + Settings.getInstance().getString(Settings.DISPLAY_NAME, "") + "</cmd>";
 	}
 
 	public String getRemoteIP(Socket sock) {
