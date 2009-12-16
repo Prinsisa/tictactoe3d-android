@@ -46,11 +46,12 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	public static Button btnStart_ = null;
 	public static Button btnFindPlayers_ = null;
 	static final Handler uiThreadCallback = new Handler();
-	
+
 	private static final int DIALOG_ABOUT = 0;
 	private static final int DIALOG_MOREBABES = 1;
-	 
+
 	final GameServer gameServer = GameServer.getInstance();
+	final Settings settings_ = Settings.getInstance();
 	public AlertDialog activeRequestDialog = null;
 
 	/**
@@ -67,6 +68,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 		context_ = getBaseContext();
 		instance_ = this;
+		settings_.loadPreferences(getPreferences(MODE_PRIVATE));
+
 		btnStart_ = ((Button) findViewById(R.id.btnSendRequest));
 		btnFindPlayers_ = ((Button) findViewById(R.id.btnPeers));
 
@@ -78,13 +81,30 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		gameServer.wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 
 		// Display the IP address
+		updateIP();
+		
+		if(settings_.getBoolean(Settings.FIRST_LAUNCH, true))
+			initializeForFirstLaunch();
+	}
+
+	/**
+	 * Used to setup the defaults the first time the user launches the program
+	 * after install
+	 */
+	public void initializeForFirstLaunch() {
+		Log.d("mad", " This is the first launch after installation!");
+		settings_.putBoolean(Settings.FIRST_LAUNCH, false);
+		
+		settings_.putBoolean(Settings.PLAY_SOUNDS, true);
+		settings_.putBoolean(Settings.VIBRATE, true);
+		
+		// Set the default DisplayName as Phone number
+		String displayName = "TicTacToe Player"; 
 		TelephonyManager t = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 		if (t != null && t.getLine1Number() != null)
-			GameServer.nameOfPlayer = t.getLine1Number();
-		else
-			GameServer.nameOfPlayer = "TicTacToe Player";
+			displayName = t.getLine1Number();
 
-		updateIP();
+		settings_.putString(Settings.DISPLAY_NAME, displayName);
 	}
 
 	/**
@@ -362,6 +382,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 			// Autofill the IP in the IP Box
 			((EditText) findViewById(R.id.server)).setText(ip);
+			
+			// Auto-send a request
+			onClick(findViewById(R.id.btnSendRequest));
 		}
 	}
 
@@ -403,43 +426,47 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 		return true;
 	}
+
 	protected Dialog onCreateDialog(int id) {
 		Dialog dialog;
 		TextView text;
 		ImageView image;
-		
-	    switch(id) {
-		    case DIALOG_ABOUT:
-				dialog = new Dialog(this);
-			
-				dialog.setContentView(R.layout.about_dialog);
-				dialog.setTitle("About TicTacToe 3D");
-			
-				text = (TextView) dialog.findViewById(R.id.text);
-				text.setText("'TicTacToe 3D - Hot Babe Edition' began as a class project by Adam Albright and Ben Gotow, " +
-						"students in Computer Engineering at Vanderbilt University.");
-				image = (ImageView) dialog.findViewById(R.id.image);
-				image.setImageResource(R.drawable.icon);
-				break;
-			
-		    case DIALOG_MOREBABES:
-		    	dialog = new Dialog(this);
-				
-				dialog.setContentView(R.layout.about_dialog);
-				dialog.setTitle("So you want more babes?");
-			
-				text = (TextView) dialog.findViewById(R.id.text);
-				text.setText("Check out hotbabeapps.com for more Android apps featuring hot babes! We told you we could make " +
-						"these games entertaining...");
-				image = (ImageView) dialog.findViewById(R.id.image);
-				image.setImageResource(R.drawable.icon);
-				break;
-		    default:
-		        dialog = null;
-	    }
-    	return dialog;
-    }
-		/**
+
+		switch (id) {
+		case DIALOG_ABOUT:
+			dialog = new Dialog(this);
+
+			dialog.setContentView(R.layout.about_dialog);
+			dialog.setTitle("About TicTacToe 3D");
+
+			text = (TextView) dialog.findViewById(R.id.text);
+			text
+					.setText("'TicTacToe 3D - Hot Babe Edition' began as a class project by Adam Albright and Ben Gotow, "
+							+ "students in Computer Engineering at Vanderbilt University.");
+			image = (ImageView) dialog.findViewById(R.id.image);
+			image.setImageResource(R.drawable.icon);
+			break;
+
+		case DIALOG_MOREBABES:
+			dialog = new Dialog(this);
+
+			dialog.setContentView(R.layout.about_dialog);
+			dialog.setTitle("So you want more babes?");
+
+			text = (TextView) dialog.findViewById(R.id.text);
+			text
+					.setText("Check out hotbabeapps.com for more Android apps featuring hot babes! We told you we could make "
+							+ "these games entertaining...");
+			image = (ImageView) dialog.findViewById(R.id.image);
+			image.setImageResource(R.drawable.icon);
+			break;
+		default:
+			dialog = null;
+		}
+		return dialog;
+	}
+
+	/**
 	 * Called when an Menu item is clicked
 	 */
 	@Override
@@ -461,7 +488,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			break;
 
 		case (MENU_SETTINGS):
-			echo("Settings");
+			Intent i = new Intent(this,SettingsActivity.class);
+			startActivity(i);
+			
 			break;
 
 		}
