@@ -69,8 +69,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		context_ = getBaseContext();
 		instance_ = this;
 		settings_.loadPreferences(getPreferences(MODE_PRIVATE));
-		networkManager_
-				.setWifiManager((WifiManager) getSystemService(Context.WIFI_SERVICE));
+		networkManager_.setWifiManager((WifiManager) getSystemService(Context.WIFI_SERVICE));
 
 		btnStart_ = ((Button) findViewById(R.id.btnSendRequest));
 		btnFindPlayers_ = ((Button) findViewById(R.id.btnPeers));
@@ -78,7 +77,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setOnClickListener(this);
 		btnFindPlayers_.setOnClickListener(this);
 		btnFindPlayers_.setText("Find local peers");
-		
+
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 
 		// Display the IP address
@@ -92,7 +91,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			btnStart_.setKeepScreenOn(true);
 		else
 			btnStart_.setKeepScreenOn(false);
-		
+
 		// prepare the correct view background
 		View l = this.findViewById(R.id.container);
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -100,7 +99,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		} else {
 			l.setBackgroundResource(R.drawable.splash);
 		}
-		
+
 		// keep the Wifi alive
 		networkManager_.createWifiLock(true);
 	}
@@ -130,22 +129,20 @@ public class LobbyActivity extends Activity implements OnClickListener {
 	 */
 	public void onClick(View v) {
 
-		if (Settings.getInstance().getBoolean(Settings.VIBRATE, true)){
-			Vibrator vibrator = (Vibrator) getApplication().getSystemService(
-					Service.VIBRATOR_SERVICE);
+		if (Settings.getInstance().getBoolean(Settings.VIBRATE, true)) {
+			Vibrator vibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
 			vibrator.vibrate(80);
 		}
-		
+
 		if (v.getId() == R.id.btnSinglePlayer) {
 			Board.getInstance().startNewGame(1);
 			Intent i = new Intent(this, GameActivity.class);
 			startActivity(i);
-			
+
 			echo("Starting a local multi-player game...");
 			return;
 		} else if (v.getId() == R.id.btnPeers) {
-			if (gameServer.helloList.size() == 0
-					&& animateBtnFindPlayers_ == false) {
+			if (gameServer.helloList.size() == 0 && animateBtnFindPlayers_ == false) {
 				updatePeerList();
 			} else if (gameServer.helloList.size() != 0) {
 				Intent i = new Intent(this, PeerListActivity.class);
@@ -165,41 +162,32 @@ public class LobbyActivity extends Activity implements OnClickListener {
 				if (!networkManager_.isConnectionWorking()) {
 					if (networkManager_.isWifiEnabled()) {
 
-						AlertDialog dialog = new AlertDialog.Builder(
-								LobbyActivity.this).create();
-						dialog
-								.setMessage("You are not currently connected to the internet");
-						dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK",
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int i) {
-										dialog.cancel();
-									}
-								});
+						AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
+						dialog.setMessage("You are not currently connected to the internet");
+						dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int i) {
+								dialog.cancel();
+							}
+						});
 
 						dialog.show();
 
 					} else {
-						AlertDialog dialog = new AlertDialog.Builder(
-								LobbyActivity.this).create();
+						AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
 						dialog
 								.setMessage("You are not currently connected to the internet. Would you like to enable your wireless connection?");
-						dialog.setButton(DialogInterface.BUTTON_POSITIVE,
-								"Yes", new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int i) {
-										dialog.cancel();
-										networkManager_.setWifiEnabled(true);
-									}
-								});
+						dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int i) {
+								dialog.cancel();
+								networkManager_.setWifiEnabled(true);
+							}
+						});
 
-						dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int i) {
-										dialog.cancel();
-									}
-								});
+						dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int i) {
+								dialog.cancel();
+							}
+						});
 
 						dialog.show();
 					}
@@ -225,39 +213,33 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		String ip = networkManager_.getIpAddress();
 
 		if (!networkManager_.isWifiEnabled()) {
-			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
-					.create();
-			dialog
-					.setMessage("You must be connected to a wireless network to scan for local players. Want to enable it?");
-			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int i) {
-							dialog.cancel();
-							networkManager_.setWifiEnabled(true);
-						}
-					});
+			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
+			dialog.setMessage("You must be connected to a wireless network to scan for local players. Want to enable it?");
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int i) {
+					dialog.cancel();
+					networkManager_.setWifiEnabled(true);
+				}
+			});
 
-			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int i) {
-							dialog.cancel();
-						}
-					});
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int i) {
+					dialog.cancel();
+				}
+			});
 
 			dialog.show();
 			return;
 		} else if (!networkManager_.isIpInternal(ip)) {
-			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
-					.create();
+			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
 			dialog
 					.setMessage("You must be connected to a wireless network to scan for local players. Please ensure you have signal.");
-			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int i) {
-							dialog.cancel();
-							networkManager_.setWifiEnabled(true);
-						}
-					});
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int i) {
+					dialog.cancel();
+					networkManager_.setWifiEnabled(true);
+				}
+			});
 
 			dialog.show();
 			return;
@@ -284,8 +266,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 					while (animateBtnFindPlayers_) {
 						btnFindPlayers_.clearAnimation();
 
-						Animation animation = new AlphaAnimation(alphaStart,
-								alphaEnd);
+						Animation animation = new AlphaAnimation(alphaStart, alphaEnd);
 						animation.setDuration(animateBtnFindPlayersDelay);
 						btnFindPlayers_.setAnimation(animation);
 						Thread.sleep(animateBtnFindPlayersDelay);
@@ -328,9 +309,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		if (peers == 0)
 			return;
 
-		
 		Button t = (Button) findViewById(R.id.btnPeers);
-		if(animateBtnFindPlayers_ == true)
+		if (animateBtnFindPlayers_ == true)
 			t.setText("Finding peers (" + peers + ")");
 		else
 			t.setText(peers + " peers");
@@ -338,22 +318,21 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 	public void deliveredRequestCB(final Socket sock) {
 		if (sock != null) {
-			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
-					.create();
+			AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
 			dialog.setMessage("Waiting for opponent to accept...");
-			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Cancel",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int i) {
-							dialog.cancel();
-							gameServer.cancelRequest(sock);
-							return;
-						}
-					});
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int i) {
+					dialog.cancel();
+					gameServer.cancelRequest(sock);
+					return;
+				}
+			});
 
 			dialog.show();
 			activeRequestDialog = dialog;
 		} else {
-			echo("Unable to connect to the remote player");
+			echo("The other player could not be reached. Make sure you are on the same wireless network" +
+					" or exposed to the wide area network through your router.");
 			btnStart_.setClickable(true);
 		}
 	}
@@ -396,38 +375,34 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		String ip = sock.getRemoteSocketAddress().toString();
 		ip = ip.substring(0, ip.indexOf('/'));
 
-		String msg = "You've got an incoming request from " + from + " (" + ip
-				+ "). Want to play?";
+		String msg = "You've got an incoming request from " + from + " (" + ip + "). Want to play?";
 
 		final Intent act = new Intent(this, GameActivity.class);
-		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
-				.create();
+		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this).create();
 		dialog.setMessage(msg);
-		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes",
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int i) {
-						activeRequestDialog = null;
-						dialog.cancel();
+		dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int i) {
+				activeRequestDialog = null;
+				dialog.cancel();
 
-						// todo
-						// confirm that the request hasn't expired
-						gameServer.responseToRequest(sock, true);
-						Board.getInstance().setOpponentSocket(sock);
-						Board.getInstance().startNewGame(2); // receiver is
-						// always 2
+				// todo
+				// confirm that the request hasn't expired
+				gameServer.responseToRequest(sock, true);
+				Board.getInstance().setOpponentSocket(sock);
+				Board.getInstance().startNewGame(2); // receiver is
+				// always 2
 
-						startActivity(act);
-					}
-				});
+				startActivity(act);
+			}
+		});
 
-		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No",
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int i) {
-						activeRequestDialog = null;
-						dialog.cancel();
-						gameServer.responseToRequest(sock, false);
-					}
-				});
+		dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int i) {
+				activeRequestDialog = null;
+				dialog.cancel();
+				gameServer.responseToRequest(sock, false);
+			}
+		});
 
 		dialog.show();
 		activeRequestDialog = dialog;
@@ -507,7 +482,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 
 		// throw away the Wifi alive
 		networkManager_.releaseWifiLock();
-		
+
 		if (animateBtnFindPlayers_)
 			gameServer.stopPingTheLan();
 	}
@@ -519,17 +494,13 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onCreateOptionsMenu(menu);
 		int i = 0;
 
-		menu.add(Menu.NONE, MENU_SETTINGS, i++, "Settings").setIcon(
-				android.R.drawable.ic_menu_preferences);
+		menu.add(Menu.NONE, MENU_SETTINGS, i++, "Settings").setIcon(android.R.drawable.ic_menu_preferences);
 
-		menu.add(Menu.NONE, MENU_SCAN, i++, "Re-scan").setIcon(
-				android.R.drawable.ic_menu_edit);
+		menu.add(Menu.NONE, MENU_SCAN, i++, "Re-scan").setIcon(android.R.drawable.ic_menu_edit);
 
-		menu.add(Menu.NONE, MENU_BABES, i++, "More Babes!").setIcon(
-				android.R.drawable.ic_menu_camera);
+		menu.add(Menu.NONE, MENU_BABES, i++, "More Babes!").setIcon(android.R.drawable.ic_menu_camera);
 
-		menu.add(Menu.NONE, MENU_ABOUT, i++, "About").setIcon(
-				android.R.drawable.ic_menu_info_details);
+		menu.add(Menu.NONE, MENU_ABOUT, i++, "About").setIcon(android.R.drawable.ic_menu_info_details);
 
 		return true;
 	}
@@ -547,9 +518,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			dialog.setTitle("About TicTacToe 3D");
 
 			text = (TextView) dialog.findViewById(R.id.text);
-			text
-					.setText("'TicTacToe 3D - Hot Babe Edition' began as a class project by Adam Albright and Ben Gotow, "
-							+ "students in Computer Engineering at Vanderbilt University.");
+			text.setText("'TicTacToe 3D - Hot Babe Edition' began as a class project by Adam Albright and Ben Gotow, "
+					+ "students in Computer Engineering at Vanderbilt University.");
 			image = (ImageView) dialog.findViewById(R.id.image);
 			image.setImageResource(R.drawable.icon);
 			break;
@@ -561,9 +531,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			dialog.setTitle("So you want more babes?");
 
 			text = (TextView) dialog.findViewById(R.id.text);
-			text
-					.setText("Check out hotbabeapps.com for more Android apps featuring hot babes! We told you we could make "
-							+ "these games entertaining...");
+			text.setText("Check out hotbabeapps.com for more Android apps featuring hot babes! We told you we could make "
+					+ "these games entertaining...");
 			image = (ImageView) dialog.findViewById(R.id.image);
 			image.setImageResource(R.drawable.icon);
 			break;
