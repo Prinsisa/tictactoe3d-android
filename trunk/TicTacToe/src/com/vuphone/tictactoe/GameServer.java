@@ -78,7 +78,7 @@ public class GameServer extends Thread {
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
 
-		final Pattern regexFrom = Pattern.compile("(<from>.+</from>)", Pattern.DOTALL);
+		final Pattern regexFrom = Pattern.compile("<from>(.+)</from>", Pattern.DOTALL);
 		
 		/*
 		 * Accept TCP socket connections
@@ -115,7 +115,9 @@ public class GameServer extends Thread {
 						public void run() {
 							Matcher regexMatcher = regexFrom.matcher(cmd);
 
-							String from = regexMatcher.group(1);
+							String from = "TicTacToe Player";
+							if (regexMatcher.find())
+								from = regexMatcher.group(1);
 							
 							LobbyActivity.getInstance().incomingGameRequestCB(sock, from);
 						}
