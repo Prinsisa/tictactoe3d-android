@@ -137,6 +137,8 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			Board.getInstance().startNewGame(1);
 			Intent i = new Intent(this, GameActivity.class);
 			startActivity(i);
+			
+			echo("Starting a local multi-player game...");
 			return;
 		} else if (v.getId() == R.id.btnPeers) {
 			if (gameServer.helloList.size() == 0

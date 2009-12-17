@@ -214,8 +214,8 @@ public class GameServer extends Thread {
 		if (netmask == null)
 			return;
 
-		Log.d("mad"," Scanning with subnet mask: " + netmask);
-		
+		Log.d("mad", " Scanning with subnet mask: " + netmask);
+
 		if (netmask.startsWith("255.255.255")) {
 			// Scans 255 IPs
 			SUBNET_COUNT = 1;
@@ -485,14 +485,16 @@ public class GameServer extends Thread {
 	}
 
 	public boolean sendCmd(Socket sock, String cmd) {
-		if(cmd.equals(cmdPlayerExited))
-			Log.d("mad","  Just sent a PLAYER-EXITED");
-		
 		try {
 			sock.getOutputStream().write(cmd.getBytes());
 			return true;
 		} catch (Exception e) {
 			Log.d("mad", "Error! Connection to opponent lost!");
+			try {
+				sock.close();
+			} catch (Exception e1) {
+			}
+
 			return false;
 		}
 	}
@@ -508,6 +510,12 @@ public class GameServer extends Thread {
 			int y = v.charAt(2) - 48;
 			board.setValueByOpponent(x, y);
 		} else if (s.equals(cmdPlayerExited)) {
+			GameActivity.uiThreadCallback.post(new Runnable() {
+				public void run() {
+					GameActivity.echo("Your opponent exited the game!");
+				}
+			});
+			
 			board.setWinner(board.getMyPlayerID());
 			board.endGame();
 		}

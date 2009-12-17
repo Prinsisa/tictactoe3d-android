@@ -2,11 +2,14 @@ package com.vuphone.tictactoe;
 
 import android.app.Activity;
 import android.app.Service;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.vuphone.tictactoe.graphics.GLManager;
 import com.vuphone.tictactoe.model.Board;
@@ -15,6 +18,9 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	private BoardGLView paintView;
 	private Board gameBoard = null;
 
+	private static Context context_ = null;
+	static final Handler uiThreadCallback = new Handler();
+	
 	/**
 	 * Called when the activity is first created and again after the apps goes
 	 * offscreen and resumes
@@ -29,6 +35,8 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 
 		// load the game model
 		gameBoard = Board.getInstance();
+		
+		context_ = getBaseContext();
 	
 		// remove our title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -71,6 +79,10 @@ public class GameActivity extends Activity implements BoardGLViewDelegate {
 	public void paintSurfaceGameClose()
 	{
 		super.finish();
+	}
+	
+	public static void echo(String msg) {
+		Toast.makeText(context_, msg, Toast.LENGTH_LONG).show();
 	}
 	
 	@Override
