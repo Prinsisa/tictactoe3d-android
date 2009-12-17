@@ -78,6 +78,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		btnStart_.setOnClickListener(this);
 		btnFindPlayers_.setOnClickListener(this);
 		btnFindPlayers_.setText("Find local peers");
+		
 		((Button) findViewById(R.id.btnSinglePlayer)).setOnClickListener(this);
 
 		// Display the IP address
@@ -99,6 +100,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		} else {
 			l.setBackgroundResource(R.drawable.splash);
 		}
+		
+		// keep the Wifi alive
+		networkManager_.createWifiLock(true);
 	}
 
 	/**
@@ -320,12 +324,17 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		((TextView) findViewById(R.id.lblMyIP)).setText("My IP: " + ip);
 	}
 
-	public synchronized void setViewPeerCount(int peers) {
+	public synchronized void updateViewPeerCount() {
+		int peers = gameServer.helloList.size();
 		if (peers == 0)
 			return;
 
+		
 		Button t = (Button) findViewById(R.id.btnPeers);
-		t.setText("Finding peers (" + peers + ")");
+		if(animateBtnFindPlayers_ == true)
+			t.setText("Finding peers (" + peers + ")");
+		else
+			t.setText(peers + " peers");
 	}
 
 	public void deliveredRequestCB(final Socket sock) {
@@ -488,6 +497,7 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onResume();
 		Log.d("mad", "   super.onResume()");
 
+		updateViewPeerCount();
 		btnStart_.setClickable(true);
 	}
 
@@ -496,6 +506,9 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		super.onPause();
 		Log.d("mad", "   super.onPause()");
 
+		// throw away the Wifi alive
+		networkManager_.releaseWifiLock();
+		
 		if (animateBtnFindPlayers_)
 			gameServer.stopPingTheLan();
 	}
@@ -598,13 +611,13 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			btnFindPlayers_.setText("Find local peers");
 			echo("No opponents found...");
 		} else
-			btnFindPlayers_.setText(gameServer.helloList.size() + " peers");
+			updateViewPeerCount();
 
 		animateBtnFindPlayers_ = false;
 	}
 
 	public void findPlayersCountUpdated() {
-		setViewPeerCount(gameServer.helloList.size());
+		updateViewPeerCount();
 	}
 
 	public void updateIP() {

@@ -16,7 +16,8 @@ public class NetworkManager {
 
 	private WifiManager wifi_ = null;
 	private static NetworkManager instance_ = null;
-
+	WifiManager.WifiLock wifiLock = null;
+	
 	public static NetworkManager getInstance() {
 		if (instance_ == null)
 			instance_ = new NetworkManager();
@@ -34,8 +35,8 @@ public class NetworkManager {
 
 		return wifi_.isWifiEnabled();
 	}
-	
-	public void setWifiEnabled(boolean enabled){
+
+	public void setWifiEnabled(boolean enabled) {
 		wifi_.setWifiEnabled(enabled);
 	}
 
@@ -88,32 +89,32 @@ public class NetworkManager {
 	}
 
 	/**
-	 * Determines if IP falls in ranges: 10.0.0.0 – 10.255.255.255 | 172.16.0.0 –
-	 * 172.31.255.255 | 192.168.0.0 – 192.168.255.255
+	 * Determines if IP falls in ranges: 10.0.0.0 – 10.255.255.255 | 172.16.0.0
+	 * – 172.31.255.255 | 192.168.0.0 – 192.168.255.255
 	 * 
 	 * @param ip
 	 *            - must be valid
 	 * @return
 	 */
 	public boolean isIpInternal(String ip) {
-		if(ip == null || !isIpValid(ip))
+		if (ip == null || !isIpValid(ip))
 			return false;
-		
-		//10.0.0.0 – 10.255.255.255 
-		if(ip.startsWith("10."))
+
+		// 10.0.0.0 – 10.255.255.255
+		if (ip.startsWith("10."))
 			return true;
-		
-		//172.16.0.0 – 172.31.255.255
-		if(ip.startsWith("172.") && ip.charAt(6) == '.'){
-			int oct = Integer.parseInt(ip.substring(4,6));
-			if(oct >= 16 && oct <= 31)
+
+		// 172.16.0.0 – 172.31.255.255
+		if (ip.startsWith("172.") && ip.charAt(6) == '.') {
+			int oct = Integer.parseInt(ip.substring(4, 6));
+			if (oct >= 16 && oct <= 31)
 				return true;
 		}
-		
-		//192.168.0.0 – 192.168.255.255
-		if(ip.startsWith("192.168."))
-				return true;
-		
+
+		// 192.168.0.0 – 192.168.255.255
+		if (ip.startsWith("192.168."))
+			return true;
+
 		return false;
 	}
 
@@ -181,12 +182,12 @@ public class NetworkManager {
 
 		return ip;
 	}
-	
-	public boolean isConnectionWorking(){
-		return (getIpAddressFromTest() == null)? false:true;
+
+	public boolean isConnectionWorking() {
+		return (getIpAddressFromTest() == null) ? false : true;
 	}
-	
-	public String getIpAddressFromTest(){
+
+	public String getIpAddressFromTest() {
 		// lets find our IP address
 		String ip = null;
 		try {
@@ -196,10 +197,27 @@ public class NetworkManager {
 		} catch (Exception e) {
 			return null;
 		}
-		
-		if(!isIpValid(ip) || isIpLoopback(ip))
+
+		if (!isIpValid(ip) || isIpLoopback(ip))
 			return null;
 		else
 			return ip;
+	}
+
+	public void createWifiLock(boolean wifi_mode_full) {
+		releaseWifiLock();
+
+		wifiLock = wifi_.createWifiLock(wifi_mode_full ? WifiManager.WIFI_MODE_FULL
+				: WifiManager.WIFI_MODE_SCAN_ONLY, "TrustiveWifi wifilock");
+		wifiLock.setReferenceCounted(false);
+		wifiLock.acquire();
+
+	}
+
+	public void releaseWifiLock() {
+		if (wifiLock != null && wifiLock.isHeld()) {
+			wifiLock.release();
+			wifiLock = null;
+		}
 	}
 }
