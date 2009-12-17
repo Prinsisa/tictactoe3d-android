@@ -510,14 +510,16 @@ public class GameServer extends Thread {
 			int y = v.charAt(2) - 48;
 			board.setValueByOpponent(x, y);
 		} else if (s.equals(cmdPlayerExited)) {
-			GameActivity.uiThreadCallback.post(new Runnable() {
-				public void run() {
-					GameActivity.echo("Your opponent exited the game!");
-				}
-			});
-			
-			board.setWinner(board.getMyPlayerID());
-			board.endGame();
+			if (board.isGameInProgress()) {
+				GameActivity.uiThreadCallback.post(new Runnable() {
+					public void run() {
+						GameActivity.echo("Your opponent exited the game!");
+					}
+				});
+
+				board.setWinner(board.getMyPlayerID());
+				board.endGame();
+			}
 		}
 	}
 }
