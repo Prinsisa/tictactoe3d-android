@@ -44,7 +44,7 @@ public class GameServer extends Thread {
 	private String listening_ip_ = null;
 	private int PORT = 1234;
 
-	private final String cmdGameRequest = "<cmd>REQUEST-NEW-GAME</cmd>";
+	private final String cmdGameRequest = "<cmd>REQUEST-NEW-GAME";
 	private final String cmdAcceptGame = "<cmd>ACCEPT-GAME-REQUEST</cmd>";
 	private final String cmdDenyGame = "<cmd>DENY-GAME-REQUEST</cmd>";
 	public final String cmdCancelGame = "<cmd>CANCEL-GAME-REQUEST</cmd>";
@@ -78,6 +78,8 @@ public class GameServer extends Thread {
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
 
+		final Pattern regexFrom = Pattern.compile("(<from>.+</from>)", Pattern.DOTALL);
+		
 		/*
 		 * Accept TCP socket connections
 		 */
@@ -90,7 +92,7 @@ public class GameServer extends Thread {
 				Log.d("mad", "Incoming game request from "
 						+ sock.getRemoteSocketAddress());
 
-				String cmd = readCmdFromSocket(sock, 1000);
+				final String cmd = readCmdFromSocket(sock, 1000);
 				if (cmd == null)
 					continue;
 
@@ -100,6 +102,7 @@ public class GameServer extends Thread {
 					sock.close();
 
 				}
+				
 				// See if a game is in progress or a request is currently active
 				else if (Board.getInstance().isGameInProgress()
 						|| LobbyActivity.getInstance().activeRequestDialog != null) {
@@ -110,8 +113,11 @@ public class GameServer extends Thread {
 
 					LobbyActivity.uiThreadCallback.post(new Runnable() {
 						public void run() {
-							LobbyActivity.getInstance().incomingGameRequestCB(
-									sock);
+							Matcher regexMatcher = regexFrom.matcher(cmd);
+
+							String from = regexMatcher.group(1);
+							
+							LobbyActivity.getInstance().incomingGameRequestCB(sock, from);
 						}
 					});
 				}
@@ -366,7 +372,8 @@ public class GameServer extends Thread {
 
 		Log.d("mad", "Sending request to " + sock.getRemoteSocketAddress());
 
-		if (sendCmd(sock, cmdGameRequest))
+		String cmd = cmdGameRequest + "<from>" + Settings.getInstance().getString(Settings.DISPLAY_NAME, "") + "</from></cmd>"; 
+		if (sendCmd(sock, cmd))
 			return sock;
 		else
 			return null;

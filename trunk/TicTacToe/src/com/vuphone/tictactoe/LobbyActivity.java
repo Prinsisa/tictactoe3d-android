@@ -392,12 +392,12 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		}
 	}
 
-	public void incomingGameRequestCB(final Socket sock) {
+	public void incomingGameRequestCB(final Socket sock, final String from) {
 		String ip = sock.getRemoteSocketAddress().toString();
 		ip = ip.substring(0, ip.indexOf('/'));
 
-		String msg = "You've got an incoming request from " + ip
-				+ ". Want to play?";
+		String msg = "You've got an incoming request from " + from + " (" + ip
+				+ "). Want to play?";
 
 		final Intent act = new Intent(this, GameActivity.class);
 		AlertDialog dialog = new AlertDialog.Builder(LobbyActivity.this)
