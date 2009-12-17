@@ -13,13 +13,6 @@
 	</EditText>
 
 	<CheckBox android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:id="@+id/chkboxPlaySounds"
-		android:text=" Play Sounds" android:layout_marginLeft="10px"
-		android:layout_marginTop="5px" android:checked="true">
-	</CheckBox>
-
-
-	<CheckBox android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/chkboxVibrate"
 		android:text=" Vibrate on Touch" android:layout_marginLeft="10px"
 		android:checked="true">
