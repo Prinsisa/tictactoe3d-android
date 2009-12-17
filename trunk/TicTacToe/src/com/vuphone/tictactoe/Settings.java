@@ -15,7 +15,6 @@ public class Settings {
 	private static Settings instance_ = null;
 
 	public static final String VIBRATE = "vibrate";
-	public static final String PLAY_SOUNDS = "playSounds";
 	public static final String DISPLAY_NAME = "displayName";
 	public static final String FIRST_LAUNCH = "firstLaunch";
 	public static final String KEEP_SCREEN_ON = "keepScreenOn";

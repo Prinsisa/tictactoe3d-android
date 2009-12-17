@@ -28,7 +28,6 @@ public class SettingsActivity extends Activity implements OnClickListener {
 		((Button) findViewById(R.id.btnCancel)).setOnClickListener(this);
 
 		((TextView) findViewById(R.id.txtDisplayName)).setText(prefs_.getString(Settings.DISPLAY_NAME, ""));
-		((CheckBox) findViewById(R.id.chkboxPlaySounds)).setChecked(prefs_.getBoolean(Settings.PLAY_SOUNDS, true));
 		((CheckBox) findViewById(R.id.chkboxVibrate)).setChecked(prefs_.getBoolean(Settings.VIBRATE, true));
 		((CheckBox) findViewById(R.id.chkboxKeepScreenOn)).setChecked(prefs_.getBoolean(Settings.KEEP_SCREEN_ON, true));
 	}
@@ -41,15 +40,12 @@ public class SettingsActivity extends Activity implements OnClickListener {
 		if (v.getId() == R.id.btnSave) {
 			CharSequence displayName = ((TextView) findViewById(R.id.txtDisplayName))
 					.getText();
-			boolean playSounds = ((CheckBox) findViewById(R.id.chkboxPlaySounds))
-					.isChecked();
 			boolean vibrate = ((CheckBox) findViewById(R.id.chkboxVibrate))
 					.isChecked();
 
 			if (displayName.length() > 0)
 				prefs_.putString(Settings.DISPLAY_NAME, displayName.toString());
 
-			prefs_.putBoolean(Settings.PLAY_SOUNDS, playSounds);
 			prefs_.putBoolean(Settings.VIBRATE, vibrate);
 		}
 

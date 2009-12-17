@@ -113,7 +113,6 @@ public class LobbyActivity extends Activity implements OnClickListener {
 		Log.d("mad", " This is the first launch after installation!");
 		settings_.putBoolean(Settings.FIRST_LAUNCH, false);
 
-		settings_.putBoolean(Settings.PLAY_SOUNDS, true);
 		settings_.putBoolean(Settings.VIBRATE, true);
 		settings_.putBoolean(Settings.KEEP_SCREEN_ON, true);
 
