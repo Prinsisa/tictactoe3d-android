@@ -91,6 +91,14 @@ public class LobbyActivity extends Activity implements OnClickListener {
 			btnStart_.setKeepScreenOn(true);
 		else
 			btnStart_.setKeepScreenOn(false);
+		
+		// prepare the correct view background
+		View l = this.findViewById(R.id.container);
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			l.setBackgroundResource(R.drawable.splashlandscape);
+		} else {
+			l.setBackgroundResource(R.drawable.splash);
+		}
 	}
 
 	/**
