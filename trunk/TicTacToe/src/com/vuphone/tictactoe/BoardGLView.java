@@ -317,7 +317,7 @@ public class BoardGLView extends GLSurfaceView implements OnTouchListener, Rende
 		if (animateFraction < 1)
 			return true;
 
-		if ((board.isGameOver() == true) && (gameOverAnimationFraction >= 1)){
+		if ((board.isGameOver() == true) && (gameOverAnimationFraction >= 1) && (gameClosingAnimationFraction == 0)){
 			gameClosingAnimationFraction = 0.05f;
 		}
 		
