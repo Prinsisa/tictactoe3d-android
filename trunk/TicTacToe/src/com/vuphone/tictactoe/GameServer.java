@@ -78,8 +78,9 @@ public class GameServer extends Thread {
 
 		Log.d("mad", "[*] Listening for game requests on port " + PORT + "...");
 
-		final Pattern regexFrom = Pattern.compile("<from>(.+)</from>", Pattern.DOTALL);
-		
+		final Pattern regexFrom = Pattern.compile("<from>(.+)</from>",
+				Pattern.DOTALL);
+
 		/*
 		 * Accept TCP socket connections
 		 */
@@ -102,7 +103,7 @@ public class GameServer extends Thread {
 					sock.close();
 
 				}
-				
+
 				// See if a game is in progress or a request is currently active
 				else if (Board.getInstance().isGameInProgress()
 						|| LobbyActivity.getInstance().activeRequestDialog != null) {
@@ -118,8 +119,9 @@ public class GameServer extends Thread {
 							String from = "TicTacToe Player";
 							if (regexMatcher.find())
 								from = regexMatcher.group(1);
-							
-							LobbyActivity.getInstance().incomingGameRequestCB(sock, from);
+
+							LobbyActivity.getInstance().incomingGameRequestCB(
+									sock, from);
 						}
 					});
 				}
@@ -374,7 +376,9 @@ public class GameServer extends Thread {
 
 		Log.d("mad", "Sending request to " + sock.getRemoteSocketAddress());
 
-		String cmd = cmdGameRequest + "<from>" + Settings.getInstance().getString(Settings.DISPLAY_NAME, "") + "</from></cmd>"; 
+		String cmd = cmdGameRequest + "<from>"
+				+ Settings.getInstance().getString(Settings.DISPLAY_NAME, "")
+				+ "</from></cmd>";
 		if (sendCmd(sock, cmd))
 			return sock;
 		else
@@ -473,7 +477,8 @@ public class GameServer extends Thread {
 		Log.d("mad", "Opening a socket to " + remoteAddr + ":" + remotePort);
 
 		try {
-			sock = new Socket(remoteAddr, remotePort);
+			sock = new Socket();
+			sock.connect(new InetSocketAddress(remoteAddr, remotePort), 2000);
 
 			if (!sock.isConnected())
 				return null;
