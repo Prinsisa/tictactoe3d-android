@@ -29,7 +29,7 @@ public class ApplePlistFile {
 			Document doc = builder.parse(stream);
 			
 			NodeList n1 = doc.getChildNodes();
-			Node n = doc.getChildNodes().item(3).getChildNodes().item(1);
+			Node n = doc.getChildNodes().item(1).getChildNodes().item(1);
 			
 			if (n == null){
 				Log.d("ApplePlistFile", "Could not load the plist file. No root node found.");
